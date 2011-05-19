@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>RRD Canvas</title>
+		<script type="text/javascript" src="binaryXHR.js"></script>
+		<script type="text/javascript" src="rrdFile.js"></script>
+		<script type="text/javascript" src="rrd.js"></script>
+		<script type="application/x-javascript">
+			function draw() {
+				var rrdgraph = new RRDGraph("canvas");
+				
+				var start = new Date();
+				try {
+					rrdgraph.cmdline(document.getElementById("cmdline").value);
+				} catch (e) {
+					alert(e+"\n"+e.stack);
+				}
+				var end = new Date();
+				document.getElementById("parse").innerHTML = 'Parse time: '+(end.getTime()-start.getTime())+"ms";
+
+				var start = new Date();
+				try {
+					rrdgraph.graph_paint();
+				} catch (e) {
+					alert(e+"\n"+e.stack);
+				}
+				var end = new Date();
+				document.getElementById("draw").innerHTML = 'Draw time: '+(end.getTime()-start.getTime())+"ms";
+			}
+		</script>
+	</head>
+	<body>
+		<textarea id="cmdline" rows="10" cols="120">-s end-1h -e 1305798665 -w 600 -h 120 -v "System load" -t Load -E
+DEF:s_avg=load.rrd:shortterm:AVERAGE
+DEF:s_min=load.rrd:shortterm:MIN
+DEF:s_max=load.rrd:shortterm:MAX
+DEF:m_avg=load.rrd:midterm:AVERAGE
+DEF:m_min=load.rrd:midterm:MIN
+DEF:m_max=load.rrd:midterm:MAX
+DEF:l_avg=load.rrd:longterm:AVERAGE
+DEF:l_min=load.rrd:longterm:MIN
+DEF:l_max=load.rrd:longterm:MAX
+AREA:s_max#B7EFB7
+AREA:s_min#FFFFFF
+"LINE1:s_avg#00E000: 1m average"
+"GPRINT:s_min:MIN:%4.2lf Min,"
+"GPRINT:s_avg:AVERAGE:%4.2lf Avg,"
+"GPRINT:s_max:MAX:%4.2lf Max,"
+"GPRINT:s_avg:LAST:%4.2lf Last\n"
+"LINE1:m_avg#0000FF: 5m average"
+"GPRINT:m_min:MIN:%4.2lf Min,"
+"GPRINT:m_avg:AVERAGE:%4.2lf Avg,"
+"GPRINT:m_max:MAX:%4.2lf Max,"
+"GPRINT:m_avg:LAST:%4.2lf Last\n"
+"LINE1:l_avg#FF0000:15m average"
+"GPRINT:l_min:MIN:%4.2lf Min,"
+"GPRINT:l_avg:AVERAGE:%4.2lf Avg,"
+"GPRINT:l_max:MAX:%4.2lf Max,"
+"GPRINT:l_avg:LAST:%4.2lf Last\n"</textarea>
+		<br>
+		<button name="submit" onclick="javascript:draw()" >draw</button>
+		<br>
+		<canvas id="canvas"></canvas>
+		<p id="parse"></p>
+		<p id="draw"></p>
+	</body>
+</html>
