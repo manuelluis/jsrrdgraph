@@ -3495,8 +3495,19 @@ RRDGraph.prototype = {
                         sval = this.ygrid_scale.gridstep*i*this.second_axis_scale+this.second_axis_shift;
                         if (!this.second_axis_format){
                             if (!second_axis_magfact){
-                                var dummy = this.ygrid_scale.gridstep*(sgrid+egrid)/2.0*this.second_axis_scale+this.second_axis_shift;
-                                [dummy, second_axis_symb, second_axis_magfact ] = this.auto_scale(dummy,second_axis_symb,second_axis_magfact);
+                                var dummy = (this.ygrid_scale.gridstep *
+                                             (sgrid+egrid)/2.0 *
+                                             this.second_axis_scale +
+                                             this.second_axis_shift);
+
+                                var parts = this.auto_scale(
+                                    dummy,
+                                    second_axis_symb,
+                                    second_axis_magfact);
+
+                                dummy = parts[0];
+                                second_axis_symb = parts[1];
+                                second_axis_magfact = parts[2];
                             }
                             sval /= second_axis_magfact;
                             if(MaxY < 10) {
