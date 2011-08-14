@@ -636,7 +636,7 @@ RRDRpn.OP = { NUMBER: 0, VARIABLE: 1, INF: 2, PREV: 3, NEGINF: 4,
     COS: 17, LOG: 18, EXP: 19, LT: 20, LE: 21, GT: 22, GE: 23, EQ: 24, IF: 25,
     MIN: 26, MAX: 27, LIMIT: 28, FLOOR: 29, CEIL: 30,
     UN: 31, END: 32, LTIME: 33, NE: 34, ISINF: 35, PREV_OTHER: 36, COUNT: 37,
-    ATAN: 38, SQRT: 39, SORT: 40, REV: 41, TREND: 42, TREDNAN: 43,
+    ATAN: 38, SQRT: 39, SORT: 40, REV: 41, TREND: 42, TRENDNAN: 43,
     ATAN2: 44, RAD2DEG: 45, DEG2RAD: 46,
     PREDICT: 47, PREDICTSIGMA: 48, AVG: 49, ABS: 50, ADDNAN: 51 };
 
@@ -1025,7 +1025,7 @@ RRDRpn.prototype = {
                     if(stptr < 0) throw RRDRpn.STACK_UNDERFLOW;
                     var spn = this.rpnstack[stptr--];
                     if(stptr < spn - 1) throw RRDRpn.STACK_UNDERFLOW;
-                    var array = this.rpnstack (stptr - spn + 1, stptr +1);
+                    var array = this.rpnstack.slice(stptr - spn + 1, stptr +1);
                     array.sort(this.rpn_compare_double);
                     for (var i=stptr - spn + 1, ii=0; i < (stptr +1) ; i++, ii++)
                         this.rpnstack[i] = array[ii];
@@ -1035,7 +1035,7 @@ RRDRpn.prototype = {
                     if(stptr < 0) throw RRDRpn.STACK_UNDERFLOW;
                     var spn = this.rpnstack[stptr--];
                     if(stptr < spn - 1) throw RRDRpn.STACK_UNDERFLOW;
-                    var array = this.rpnstack (stptr - spn + 1, stptr +1);
+                    var array = this.rpnstack.slice(stptr - spn + 1, stptr +1);
                     array.reverse();
                     for (var i=stptr - spn + 1, ii=0; i < (stptr +1) ; i++, ii++)
                         this.rpnstack[i] = array[ii];
@@ -2401,7 +2401,7 @@ RRDGraph.prototype = {
             switch (this.gdes[i].gf) {
                 case RRDGraphDesc.GF.PRINT:
                 case RRDGraphDesc.GF.GPRINT:
-                    if (this.gdes[vidx].gf === RRDGraphDesc.CF.VDEF) { /* simply use vals */
+                    if (this.gdes[vidx].gf === RRDGraphDesc.GF.VDEF) { /* simply use vals */
                         printval = this.gdes[vidx].vf.val;
                         tmvdef = this.gdes[vidx].vf.when;
                         // localtime_r(&this.gdes[vidx].vf.when, &tmvdef); // FIXME ?
@@ -2515,7 +2515,7 @@ RRDGraph.prototype = {
     var col, dst_row, row_cnt, start_offset, end_offset, skiprows = 0;
     var srcptr, dstptr;
 
-    gdes.step = cur_step * gdes.reduce_factor; /* set new step size for reduced data */
+    gdes.step = cur_step * reduce_factor; /* set new step size for reduced data */
     dstptr = 0;
     srcptr = 0;
     row_cnt = (gdes.end - gdes.start) / cur_step;
@@ -3024,7 +3024,7 @@ RRDGraph.prototype = {
                 this.xorigin+this.xsize,this.yorigin+4,
                 this.xorigin+this.xsize,this.yorigin-this.ysize-4,
                 MGRIDWIDTH,
-                this.GRC_AXIS);
+                this.GRC.AXIS);
             // FIXME: this.graph_col does not exist, code was originally...
             // this.graph_col[GRC_AXIS]);
 
