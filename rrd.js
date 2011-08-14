@@ -3564,17 +3564,22 @@ RRDGraph.prototype = {
         var X0, Y0;
 
         if (this.draw_3d_border > 0) {
-                i = this.draw_3d_border;
-                this.gfx_new_area(0, this.yimg, i, this.yimg - i, i, i, this.GRC.SHADEA);
-                this.gfx_add_point(this.ximg - i, i);
-                this.gfx_add_point(this.ximg, 0);
-                this.gfx_add_point(0, 0);
-                this.gfx_close_path();
-                this.gfx_new_area(i, this.yimg - i, this.ximg - i, this.yimg - i, this.ximg - i, i, this.GRC.SHADEB);
-                this.gfx_add_point(this.ximg, 0);
-                this.gfx_add_point(this.ximg, this.yimg);
-                this.gfx_add_point(0, this.yimg);
-                this.gfx_close_path();
+            i = this.draw_3d_border;
+            this.gfx_new_area(
+                0, this.yimg, i, this.yimg - i, i, i, this.GRC.SHADEA);
+            this.gfx_add_point(this.ximg - i, i);
+            this.gfx_add_point(this.ximg, 0);
+            this.gfx_add_point(0, 0);
+            this.gfx_close_path();
+            this.gfx_new_area(
+                i, this.yimg - i,
+                this.ximg - i, this.yimg - i,
+                this.ximg - i, i,
+                this.GRC.SHADEB);
+            this.gfx_add_point(this.ximg, 0);
+            this.gfx_add_point(this.ximg, this.yimg);
+            this.gfx_add_point(0, this.yimg);
+            this.gfx_close_path();
         }
         if (this.draw_x_grid)
             this.vertical_grid();
@@ -3584,99 +3589,145 @@ RRDGraph.prototype = {
             else
                 res = this.draw_horizontal_grid();
             /* dont draw horizontal grid if there is no min and max val */
-          if (!res) {
-            this.gfx_text(this.ximg / 2, (2 * this.yorigin - this.ysize) / 2,
-              this.GRC.FONT, this.TEXT.AXIS,
-              this.tabwidth, 0.0,
-              this.GFX_H.CENTER, this.GFX_V.CENTER, 'No Data found');
-          }
+            if (!res) {
+                this.gfx_text(
+                    this.ximg / 2, (2 * this.yorigin - this.ysize) / 2,
+                    this.GRC.FONT, this.TEXT.AXIS,
+                    this.tabwidth, 0.0,
+                    this.GFX_H.CENTER, this.GFX_V.CENTER, 'No Data found');
+            }
         }
 
         /* yaxis unit description */
         if (this.ylegend){
-            this.gfx_text(this.xOriginLegendY+10, this.yOriginLegendY,
-                    this.GRC.FONT, this.TEXT.UNIT, this.tabwidth, this.YLEGEND_ANGLE,
-                    this.GFX_H.CENTER, this.GFX_V.CENTER, this.ylegend);
+            this.gfx_text(
+                this.xOriginLegendY+10, this.yOriginLegendY,
+                this.GRC.FONT, this.TEXT.UNIT, this.tabwidth,
+                this.YLEGEND_ANGLE, this.GFX_H.CENTER, this.GFX_V.CENTER,
+                this.ylegend);
 
         }
         if (this.second_axis_legend){
-            this.gfx_text(this.xOriginLegendY2+10, this.yOriginLegendY2,
-                this.GRC.FONT, this.TEXT.UNIT, this.tabwidth, this.YLEGEND_ANGLE,
-                this.GFX_H.CENTER, this.GFX_V.CENTER, this.second_axis_legend);
+            this.gfx_text(
+                this.xOriginLegendY2+10, this.yOriginLegendY2,
+                this.GRC.FONT, this.TEXT.UNIT, this.tabwidth,
+                this.YLEGEND_ANGLE, this.GFX_H.CENTER, this.GFX_V.CENTER,
+                this.second_axis_legend);
         }
 
         /* graph title */
-        this.gfx_text(this.xOriginTitle, this.yOriginTitle+6,
-                 this.GRC.FONT, this.TEXT.TITLE, this.tabwidth, 0.0, this.GFX_H.CENTER, this.GFX_V.TOP, this.title);
+        this.gfx_text(
+            this.xOriginTitle, this.yOriginTitle+6,
+            this.GRC.FONT, this.TEXT.TITLE, this.tabwidth, 0.0,
+            this.GFX_H.CENTER, this.GFX_V.TOP, this.title);
         /* rrdtool 'logo' */
         if (!this.no_rrdtool_tag){
             var color = this.parse_color(this.GRC.FONT);
-                color[3] = 0.3;
-                var water_color = this.color2rgba(color);
-            var xpos = this.legendposition === this.LEGEND_POS.EAST ? this.xOriginLegendY : this.ximg - 4;
-            this.gfx_text(xpos, 5, water_color, this.TEXT.WATERMARK, this.tabwidth,
-                 -90, this.GFX_H.LEFT, this.GFX_V.TOP, "RRDTOOL / TOBI OETIKER");
+            color[3] = 0.3;
+            var water_color = this.color2rgba(color);
+            var xpos = (
+                this.legendposition === this.LEGEND_POS.EAST ?
+                    this.xOriginLegendY : this.ximg - 4);
+            this.gfx_text(
+                xpos, 5, water_color, this.TEXT.WATERMARK, this.tabwidth, -90,
+                this.GFX_H.LEFT, this.GFX_V.TOP, "RRDTOOL / TOBI OETIKER");
         }
         /* graph watermark */
         if (this.watermark) {
-            var color = this.parse_color(this.GRC.FONT)
+            var color = this.parse_color(this.GRC.FONT);
                 color[3] = 0.3;
                 var water_color = this.color2rgba(color);
-            this.gfx_text(this.ximg / 2, this.yimg - 6, water_color, this.TEXT.FONT , this.tabwidth, 0,
-                 this.GFX_H.CENTER, this.GFX_V.BOTTOM, this.watermark);
+            this.gfx_text(
+                this.ximg / 2, this.yimg - 6, water_color, this.TEXT.FONT,
+                this.tabwidth, 0,
+                this.GFX_H.CENTER, this.GFX_V.BOTTOM, this.watermark);
         }
         /* graph labels */
         if (!(this.no_legend) && !(this.only_graph)) {
-            for (var i = 0 , gdes_c = this.gdes.length; i < gdes_c; i++) {
+            for (i = 0 , gdes_c = this.gdes.length; i < gdes_c; i++) {
                 if (!this.gdes[i].legend) continue;
                 X0 = this.xOriginLegend + this.gdes[i].leg_x;
-                Y0 = this.legenddirection === this.LEGEND_DIR.TOP_DOWN ? this.yOriginLegend + this.gdes[i].leg_y : this.yOriginLegend + this.legendheight - this.gdes[i].leg_y;
-                this.gfx_text(X0, Y0, this.GRC.FONT, this.TEXT.LEGEND, this.tabwidth, 0.0, this.GFX_H.LEFT, this.GFX_V.BOTTOM, this.gdes[i].legend);
-                if (this.gdes[i].gf != RRDGraphDesc.GF.PRINT && this.gdes[i].gf != RRDGraphDesc.GF.GPRINT && this.gdes[i].gf != RRDGraphDesc.GF.COMMENT) {
-                var boxH, boxV;
-                var X1, Y1;
+                Y0 = (
+                    this.legenddirection === this.LEGEND_DIR.TOP_DOWN ?
+                        this.yOriginLegend + this.gdes[i].leg_y :
+                        this.yOriginLegend + this.legendheight -
+                        this.gdes[i].leg_y);
+                this.gfx_text(
+                    X0, Y0, this.GRC.FONT, this.TEXT.LEGEND, this.tabwidth,
+                    0.0, this.GFX_H.LEFT, this.GFX_V.BOTTOM,
+                    this.gdes[i].legend);
+                if (this.gdes[i].gf != RRDGraphDesc.GF.PRINT
+                    && this.gdes[i].gf != RRDGraphDesc.GF.GPRINT
+                    && this.gdes[i].gf != RRDGraphDesc.GF.COMMENT) {
+                    var boxH, boxV;
+                    var X1, Y1;
 
-                boxH = this.gfx_get_text_width(0,this.TEXT.LEGEND, this.tabwidth, 'o') * 1.2;
-                boxV = boxH;
+                    boxH = this.gfx_get_text_width(
+                        0,this.TEXT.LEGEND, this.tabwidth, 'o') * 1.2;
+                    boxV = boxH;
 
-                Y0 -= boxV * 0.4;
+                    Y0 -= boxV * 0.4;
 
-                if (this.dynamic_labels && this.gdes[i].gf === RRDGraphDesc.GF.HRULE) {
-                    this.gfx_line(X0, Y0 - boxV / 2, X0 + boxH, Y0 - boxV / 2, 1.0, this.gdes[i].col);
-                } else if (this.dynamic_labels && this.gdes[i].gf === RRDGraphDesc.GF.VRULE) {
-                    this.gfx_line(X0 + boxH / 2, Y0, X0 + boxH / 2, Y0 - boxV, 1.0, this.gdes[i].col);
-                } else if (this.dynamic_labels && this.gdes[i].gf === RRDGraphDesc.GF.LINE) {
-                    this.gfx_line(X0, Y0, X0 + boxH, Y0 - boxV, this.gdes[i].linewidth, this.gdes[i].col);
-                } else {
-                    this.gfx_new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.GRC.BACK);
-                        this.gfx_add_point(Math.round(X0 + boxH)+0.5, Math.round(Y0 - boxV)+0.5);
-                    this.gfx_close_path();
-                    this.gfx_new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.gdes[i].col);
-                    this.gfx_add_point(Math.round(X0 + boxH)+0.5, Math.round(Y0 - boxV)+0.5);
-                    this.gfx_close_path();
-                    this.ctx.save();
+                    if (this.dynamic_labels
+                        && this.gdes[i].gf === RRDGraphDesc.GF.HRULE) {
+                        this.gfx_line(
+                            X0, Y0 - boxV / 2,
+                            X0 + boxH, Y0 - boxV / 2,
+                            1.0, this.gdes[i].col);
+                    } else if (this.dynamic_labels
+                               && this.gdes[i].gf === RRDGraphDesc.GF.VRULE) {
+                        this.gfx_line(
+                            X0 + boxH / 2, Y0,
+                            X0 + boxH / 2, Y0 - boxV,
+                            1.0, this.gdes[i].col);
+                    } else if (this.dynamic_labels
+                               && this.gdes[i].gf === RRDGraphDesc.GF.LINE) {
+                        this.gfx_line(
+                            X0, Y0,
+                            X0 + boxH, Y0 - boxV,
+                            this.gdes[i].linewidth, this.gdes[i].col);
+                    } else {
+                        this.gfx_new_area(
+                            X0, Y0 - boxV,
+                            X0, Y0,
+                            X0 + boxH, Y0,
+                            this.GRC.BACK);
+                        this.gfx_add_point(
+                            Math.round(X0 + boxH)+0.5,
+                            Math.round(Y0 - boxV)+0.5);
+                        this.gfx_close_path();
+                        this.gfx_new_area(
+                            X0, Y0 - boxV,
+                            X0, Y0,
+                            X0 + boxH, Y0,
+                            this.gdes[i].col);
+                        this.gfx_add_point(
+                            Math.round(X0 + boxH)+0.5,
+                            Math.round(Y0 - boxV)+0.5);
+                        this.gfx_close_path();
+                        this.ctx.save();
 
                         this.ctx.beginPath();
                         this.ctx.lineWidth = 1.0;
-                    X1 = X0 + boxH;
-                    Y1 = Y0 - boxV;
+                        X1 = X0 + boxH;
+                        Y1 = Y0 - boxV;
                         X0 = Math.round(X0)+0.5;
                         X1 = Math.round(X1)+0.5;
                         Y0 = Math.round(Y0)+0.5;
                         Y1 = Math.round(Y1)+0.5;
-                    this.ctx.moveTo(X0, Y0);
-                    this.ctx.lineTo(X1, Y0);
-                    this.ctx.lineTo(X1, Y1);
-                    this.ctx.lineTo(X0, Y1);
+                        this.ctx.moveTo(X0, Y0);
+                        this.ctx.lineTo(X1, Y0);
+                        this.ctx.lineTo(X1, Y1);
+                        this.ctx.lineTo(X0, Y1);
                         this.ctx.closePath();
                         this.ctx.strokeStyle = this.GRC.FRAME;
                         this.ctx.stroke();
                         this.ctx.restore();
                     }
-//              if (this.gdes[i].dash) { FIXME
-//                  double    dashes[] = { 3.0 };
-//                  cairo_set_dash(this.cr, dashes, 1, 0.0);
-//              }
+                    //              if (this.gdes[i].dash) { FIXME
+                    //                  double    dashes[] = { 3.0 };
+                    //                  cairo_set_dash(this.cr, dashes, 1, 0.0);
+                    //              }
                 }
             }
         }
