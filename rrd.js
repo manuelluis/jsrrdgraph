@@ -3082,7 +3082,7 @@ RRDGraph.prototype = {
     X0 = this.xorigin;
     X1 = this.xorigin + this.xsize;
     /* draw grid */
-    pre_value = Number.NAN;
+    pre_value = Number.NaN;
 
     while (1) {
             value = yloglab[mid][flab] * Math.pow(10.0, val_exp);
@@ -4525,7 +4525,7 @@ RRDGraph.prototype = {
             param = parseFloat(str.substr(0,index));
             func = str.substr(index+1);
     } else {
-            param = Number.NAN;
+            param = Number.NaN;
             func = str;
     }
 
@@ -4555,7 +4555,7 @@ RRDGraph.prototype = {
         }
         if (param >= 0.0 && param <= 100.0) {
                     gdes.vf.param = param;
-                    gdes.vf.val = Number.NAN;    /* undefined */
+                    gdes.vf.val = Number.NaN;    /* undefined */
                     gdes.vf.when = 0;  /* undefined */
         } else {
                     throw "Parameter '"+param+"' out of range in VDEF '"+gdes.vname+"'";
@@ -4572,8 +4572,8 @@ RRDGraph.prototype = {
             case RRDGraphDesc.VDEF.LSLINT:
             case RRDGraphDesc.VDEF.LSLCORREL:
         if (isNaN(param)) {
-                    gdes.vf.param = Number.NAN;
-                    gdes.vf.val = Number.NAN;
+                    gdes.vf.param = Number.NaN;
+                    gdes.vf.val = Number.NaN;
                     gdes.vf.when = 0;
         } else {
                     throw "Function '"+func+"' needs no parameter in VDEF '"+gdes.vname+"'";
@@ -4628,7 +4628,7 @@ RRDGraph.prototype = {
                 step = 0;
                 while (step != steps && isNaN(data[step * src.ds_cnt])) step++;
                 if (step === steps) {
-                    dst.vf.val = Number.NAN;
+                    dst.vf.val = Number.NaN;
                     dst.vf.when = 0;
                 } else {
                     dst.vf.val = data[step * src.ds_cnt];
@@ -4677,7 +4677,7 @@ RRDGraph.prototype = {
                         dst.vf.when = 0;   /* no time component */
                     }
                 } else {
-                    dst.vf.val = Number.NAN;
+                    dst.vf.val = Number.NaN;
                     dst.vf.when = 0;
                 }
                 break;
@@ -4685,7 +4685,7 @@ RRDGraph.prototype = {
                 step = 0;
                 while (step != steps && isNaN(data[step * src.ds_cnt])) step++;
                 if (step === steps) {
-                    dst.vf.val = Number.NAN;
+                    dst.vf.val = Number.NaN;
                     dst.vf.when = 0;
                 } else {
                     dst.vf.val = data[step * src.ds_cnt];
@@ -4705,7 +4705,7 @@ RRDGraph.prototype = {
                 step = 0;
                 while (step != steps && isNaN(data[step * src.ds_cnt])) step++;
                 if (step === steps) {    /* all entries were NaN */
-                    dst.vf.val = Number.NAN;
+                    dst.vf.val = Number.NaN;
                     dst.vf.when = 0;
                 } else {
                     dst.vf.val = data[step * src.ds_cnt];
@@ -4716,7 +4716,7 @@ RRDGraph.prototype = {
                 step = steps - 1;
                 while (step >= 0 && isNaN(data[step * src.ds_cnt])) step--;
                 if (step < 0) { /* all entries were NaN */
-                    dst.vf.val = Number.NAN;
+                    dst.vf.val = Number.NaN;
                     dst.vf.when = 0;
                 } else {
                     dst.vf.val = data[step * src.ds_cnt];
