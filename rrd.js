@@ -14,9 +14,9 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
- * RRDtool 1.4.5  Copyright by Tobi Oetiker, 1997-2010 
+ * RRDtool 1.4.5  Copyright by Tobi Oetiker, 1997-2010
  *
- * Convert to javascript: Manuel Sanmartin <manuel.luis at gmail.com>  
+ * Convert to javascript: Manuel Sanmartin <manuel.luis at gmail.com>
  **/
 
 "use strict";
@@ -25,40 +25,40 @@ var RRDTime = function() {
   this.parser.apply(this, arguments);
 };
 
-RRDTime.EOF = -1; 
-RRDTime.MIDNIGHT = 0; 
-RRDTime.NOON = 1; 
+RRDTime.EOF = -1;
+RRDTime.MIDNIGHT = 0;
+RRDTime.NOON = 1;
 RRDTime.TEATIME = 2;
-RRDTime.PM = 3; 
-RRDTime.AM = 4; 
-RRDTime.YESTERDAY = 5; 
-RRDTime.TODAY = 6; 
-RRDTime.TOMORROW = 7; 
-RRDTime.NOW = 8; 
-RRDTime.START = 9; 
-RRDTime.END = 10; 
+RRDTime.PM = 3;
+RRDTime.AM = 4;
+RRDTime.YESTERDAY = 5;
+RRDTime.TODAY = 6;
+RRDTime.TOMORROW = 7;
+RRDTime.NOW = 8;
+RRDTime.START = 9;
+RRDTime.END = 10;
 RRDTime.EPOCH = 11;
-RRDTime.SECONDS = 12; 
-RRDTime.MINUTES = 13; 
-RRDTime.HOURS = 14; 
-RRDTime.DAYS = 15; 
-RRDTime.WEEKS = 16; 
-RRDTime.MONTHS = 17; 
+RRDTime.SECONDS = 12;
+RRDTime.MINUTES = 13;
+RRDTime.HOURS = 14;
+RRDTime.DAYS = 15;
+RRDTime.WEEKS = 16;
+RRDTime.MONTHS = 17;
 RRDTime.YEARS = 18;
 RRDTime.MONTHS_MINUTES = 19;
-RRDTime.NUMBER = 20; 
-RRDTime.PLUS = 21; 
+RRDTime.NUMBER = 20;
+RRDTime.PLUS = 21;
 RRDTime.MINUS = 22;
-RRDTime.DOT = 23; 
-RRDTime.COLON = 24; 
-RRDTime.SLASH = 25; 
-RRDTime.ID = 26; 
+RRDTime.DOT = 23;
+RRDTime.COLON = 24;
+RRDTime.SLASH = 25;
+RRDTime.ID = 26;
 RRDTime.JUNK = 27;
-RRDTime.JAN = 28; 
-RRDTime.FEB = 29; 
-RRDTime.MAR = 30; 
-RRDTime.APR = 31; 
-RRDTime.MAY = 32; 
+RRDTime.JAN = 28;
+RRDTime.FEB = 29;
+RRDTime.MAR = 30;
+RRDTime.APR = 31;
+RRDTime.MAY = 32;
 RRDTime.JUN = 33;
 RRDTime.JUL = 34;
 RRDTime.AUG = 35;
@@ -196,12 +196,12 @@ RRDTime.prototype = {
 				this.token = parseInt(this.token);
 			} else if (this.token === ':') {
 				this.tokid = RRDTime.COLON;
-			} else if (this.token === '.') { 
+			} else if (this.token === '.') {
 				this.tokid = RRDTime.DOT;
 			} else if (this.token === '+') {
 				this.tokid = RRDTime.PLUS;
-			} else if (this.token === '/') { 
-				this.tokid = RRDTime.SLASH;	
+			} else if (this.token === '/') {
+				this.tokid = RRDTime.SLASH;
 			} else if (this.token === '-') {
 				this.tokid = RRDTime.MINUS;
 			} else {
@@ -224,7 +224,7 @@ RRDTime.prototype = {
 
     if (doop >= 0) {
 			op = doop;
-			if (this.gettok() != RRDTime.NUMBER) 
+			if (this.gettok() != RRDTime.NUMBER)
 				throw "There should be number after '"+(op == RRDTime.PLUS ? '+' : '-')+"'";
 			prev_multiplier = -1;   /* reset months-minutes guessing mechanics */
 		}
@@ -302,7 +302,7 @@ RRDTime.prototype = {
 			if (this.gettok() != RRDTime.NUMBER)
 				throw "Parsing HH:MM syntax, expecting MM as number, got none";
 			minute = this.token;
-			if (minute > 59) 
+			if (minute > 59)
 				throw "parsing HH:MM syntax, got MM = "+minute+" (>59!)";
 			this.gettok();
     }
@@ -346,7 +346,7 @@ RRDTime.prototype = {
 		}
     /* 00-37 until the problem of 2038 year will */
     /* arise for unices with 32-bit time_t :)    */
-    if (year < 70) 
+    if (year < 70)
 			throw "won't handle dates before epoch (01/01/1970), sorry";
 
     this.tm_mday = mday;
@@ -411,7 +411,7 @@ RRDTime.prototype = {
             break;
         }
         if (mon > 19700101 && mon < 24000101) { /*works between 1900 and 2400 */
-					var str = this.token + '';	
+					var str = this.token + '';
 					year = parseInt(str.substr(0,4));
 					mon = parseInt(str.substr(4,2));
 					mday = parseInt(str.substr(6,2));
@@ -437,14 +437,14 @@ RRDTime.prototype = {
 					}
 			}
 			mon--;
-			if (mon < 0 || mon > 11) 
+			if (mon < 0 || mon > 11)
 				throw "did you really mean month "+(mon+1)+"?";
-			if (mday < 1 || mday > 31) 
+			if (mday < 1 || mday > 31)
 				throw "I'm afraid that "+mday+" is not a valid day of the month",
 			this.assign_date(mday, mon, year);
 			break;
 		}
-	}, 
+	},
 	parser: function(tspec)
 	{
 		var date = new Date();
@@ -503,11 +503,11 @@ RRDTime.prototype = {
         this.tm_year = 30000;
 				this.tod();
 				this.day();
-				if (this.tm_hour == 30 && this.tm_year != 30000) 
+				if (this.tm_hour == 30 && this.tm_year != 30000)
 					this.tod();
-				if (this.tm_hour == 30) 
+				if (this.tm_hour == 30)
 					this.tm_hour = hour_sv;
-				if (this.tm_year == 30000) 
+				if (this.tm_year == 30000)
 					this.tm_year = year_sv;
         break;
 			case RRDTime.JAN:
@@ -561,13 +561,13 @@ RRDTime.prototype = {
     }
 
     /* now we should be at EOF */
-    if (this.tokid != RRDTime.EOF) 
+    if (this.tokid != RRDTime.EOF)
         throw "unparsable trailing text: '..."+this.token+"'";
 //    if (this.type == RRDTime.ABSOLUTE_TIME)
 //			if (mktime(&ptv->tm) == -1)  // FIXME ??
 //				panic(e("the specified time is incorrect (out of range?)"));
 	},
-	localtime: function (tm) 
+	localtime: function (tm)
 	{
 		var date = new Date(tm*1000);
 		this.tm_sec = date.getSeconds();
@@ -578,7 +578,7 @@ RRDTime.prototype = {
 		this.tm_year = date.getFullYear()-1900;
 		this.tm_wday = date.getDay();
 	},
-	mktime: function() 
+	mktime: function()
 	{
 		var date = new Date(this.tm_year+1900, this.tm_mon, this.tm_mday, this.tm_hour, this.tm_min, this.tm_sec);
 		return Math.round(date.getTime()/1000.0);
@@ -588,11 +588,11 @@ RRDTime.prototype = {
 RRDTime.proc_start_end = function(start_t, end_t) {
 	var start, end;
 
-  if (start_t.type == RRDTime.RELATIVE_TO_END_TIME &&  end_t.type == RRDTime.RELATIVE_TO_START_TIME) 
+  if (start_t.type == RRDTime.RELATIVE_TO_END_TIME &&  end_t.type == RRDTime.RELATIVE_TO_START_TIME)
 		throw "the start and end times cannot be specified relative to each other";
-  if (start_t.type == RRDTime.RELATIVE_TO_START_TIME) 
+  if (start_t.type == RRDTime.RELATIVE_TO_START_TIME)
 		throw "the start time cannot be specified relative to itself";
-  if (end_t.type == RRDTime.RELATIVE_TO_END_TIME) 
+  if (end_t.type == RRDTime.RELATIVE_TO_END_TIME)
 		throw "the end time cannot be specified relative to itself";
 
   if (start_t.type == RRDTime.RELATIVE_TO_END_TIME) {
@@ -618,7 +618,7 @@ RRDTime.proc_start_end = function(start_t, end_t) {
   return [start, end];
 }
 
-var RRDRpn = function() { 
+var RRDRpn = function() {
 	this.parser.apply(this, arguments);
 };
 
@@ -661,69 +661,69 @@ RRDRpn.prototype = {
 
 		for(var i=0, len=exprs.length; i < len; i++) {
 			expr=exprs[i].toUpperCase();
-			
+
 			steps++;
 			this.rpnp[steps] = {};
 
 			if (!isNaN(expr)) {
           this.rpnp[steps].op = RRDRpn.OP.NUMBER;
 					this.rpnp[steps].val = parseFloat(expr);
-			} 
-			else if (expr === '+') this.rpnp[steps].op = RRDRpn.OP.ADD; 
-			else if (expr === '-') this.rpnp[steps].op = RRDRpn.OP.SUB; 
-			else if (expr === '*') this.rpnp[steps].op = RRDRpn.OP.MUL; 
-			else if (expr === '/') this.rpnp[steps].op = RRDRpn.OP.DIV; 
-			else if (expr === '%') this.rpnp[steps].op = RRDRpn.OP.MOD; 
-			else if (expr === 'SIN') this.rpnp[steps].op = RRDRpn.OP.SIN; 
-			else if (expr === 'COS') this.rpnp[steps].op = RRDRpn.OP.COS; 
-			else if (expr === 'LOG') this.rpnp[steps].op = RRDRpn.OP.LOG; 
-			else if (expr === 'FLOOR') this.rpnp[steps].op = RRDRpn.OP.FLOOR; 
-			else if (expr === 'CEIL') this.rpnp[steps].op = RRDRpn.OP.CEIL; 
-			else if (expr === 'EXP') this.rpnp[steps].op = RRDRpn.OP.EXP; 
-			else if (expr === 'DUP') this.rpnp[steps].op = RRDRpn.OP.DUP; 
-			else if (expr === 'EXC') this.rpnp[steps].op = RRDRpn.OP.EXC; 
-			else if (expr === 'POP') this.rpnp[steps].op = RRDRpn.OP.POP; 
-			else if (expr === 'LTIME') this.rpnp[steps].op = RRDRpn.OP.LTIME; 
-			else if (expr === 'LT') this.rpnp[steps].op = RRDRpn.OP.LT; 
-			else if (expr === 'LE') this.rpnp[steps].op = RRDRpn.OP.LE; 
-			else if (expr === 'GT') this.rpnp[steps].op = RRDRpn.OP.GT; 
-			else if (expr === 'GE') this.rpnp[steps].op = RRDRpn.OP.GE; 
-			else if (expr === 'EQ') this.rpnp[steps].op = RRDRpn.OP.EQ; 
-			else if (expr === 'IF') this.rpnp[steps].op = RRDRpn.OP.IF; 
-			else if (expr === 'MIN') this.rpnp[steps].op = RRDRpn.OP.MIN; 
-			else if (expr === 'MAX') this.rpnp[steps].op = RRDRpn.OP.MAX; 
-			else if (expr === 'LIMIT') this.rpnp[steps].op = RRDRpn.OP.LIMIT; 
-			else if (expr === 'UNKN') this.rpnp[steps].op = RRDRpn.OP.UNKN; 
-			else if (expr === 'UN') this.rpnp[steps].op = RRDRpn.OP.UN; 
-			else if (expr === 'NEGINF') this.rpnp[steps].op = RRDRpn.OP.NEGINF; 
-			else if (expr === 'NE') this.rpnp[steps].op = RRDRpn.OP.NE; 
-			else if (expr === 'COUNT') this.rpnp[steps].op = RRDRpn.OP.COUNT; 
+			}
+			else if (expr === '+') this.rpnp[steps].op = RRDRpn.OP.ADD;
+			else if (expr === '-') this.rpnp[steps].op = RRDRpn.OP.SUB;
+			else if (expr === '*') this.rpnp[steps].op = RRDRpn.OP.MUL;
+			else if (expr === '/') this.rpnp[steps].op = RRDRpn.OP.DIV;
+			else if (expr === '%') this.rpnp[steps].op = RRDRpn.OP.MOD;
+			else if (expr === 'SIN') this.rpnp[steps].op = RRDRpn.OP.SIN;
+			else if (expr === 'COS') this.rpnp[steps].op = RRDRpn.OP.COS;
+			else if (expr === 'LOG') this.rpnp[steps].op = RRDRpn.OP.LOG;
+			else if (expr === 'FLOOR') this.rpnp[steps].op = RRDRpn.OP.FLOOR;
+			else if (expr === 'CEIL') this.rpnp[steps].op = RRDRpn.OP.CEIL;
+			else if (expr === 'EXP') this.rpnp[steps].op = RRDRpn.OP.EXP;
+			else if (expr === 'DUP') this.rpnp[steps].op = RRDRpn.OP.DUP;
+			else if (expr === 'EXC') this.rpnp[steps].op = RRDRpn.OP.EXC;
+			else if (expr === 'POP') this.rpnp[steps].op = RRDRpn.OP.POP;
+			else if (expr === 'LTIME') this.rpnp[steps].op = RRDRpn.OP.LTIME;
+			else if (expr === 'LT') this.rpnp[steps].op = RRDRpn.OP.LT;
+			else if (expr === 'LE') this.rpnp[steps].op = RRDRpn.OP.LE;
+			else if (expr === 'GT') this.rpnp[steps].op = RRDRpn.OP.GT;
+			else if (expr === 'GE') this.rpnp[steps].op = RRDRpn.OP.GE;
+			else if (expr === 'EQ') this.rpnp[steps].op = RRDRpn.OP.EQ;
+			else if (expr === 'IF') this.rpnp[steps].op = RRDRpn.OP.IF;
+			else if (expr === 'MIN') this.rpnp[steps].op = RRDRpn.OP.MIN;
+			else if (expr === 'MAX') this.rpnp[steps].op = RRDRpn.OP.MAX;
+			else if (expr === 'LIMIT') this.rpnp[steps].op = RRDRpn.OP.LIMIT;
+			else if (expr === 'UNKN') this.rpnp[steps].op = RRDRpn.OP.UNKN;
+			else if (expr === 'UN') this.rpnp[steps].op = RRDRpn.OP.UN;
+			else if (expr === 'NEGINF') this.rpnp[steps].op = RRDRpn.OP.NEGINF;
+			else if (expr === 'NE') this.rpnp[steps].op = RRDRpn.OP.NE;
+			else if (expr === 'COUNT') this.rpnp[steps].op = RRDRpn.OP.COUNT;
 			else if (/PREV\([-_A-Za-z0-9]+\)/.test(expr)) {
 				var match = exprs[i].match(/PREV\(([-_A-Za-z0-9]+)\)/i);
 				if (match.length == 2) {
-					this.rpnp[steps].op = RRDRpn.OP.PREV_OTHER; 
+					this.rpnp[steps].op = RRDRpn.OP.PREV_OTHER;
   	      this.rpnp[steps].ptr = this.find_var(gdes, match[1]);  // FIXME if -1
 				}
-			} 
-			else if (expr === 'PREV') this.rpnp[steps].op = RRDRpn.OP.PREV; 
-			else if (expr === 'INF') this.rpnp[steps].op = RRDRpn.OP.INF; 
-			else if (expr === 'ISINF') this.rpnp[steps].op = RRDRpn.OP.ISINF; 
-			else if (expr === 'NOW') this.rpnp[steps].op = RRDRpn.OP.NOW; 
-			else if (expr === 'TIME') this.rpnp[steps].op = RRDRpn.OP.TIME; 
-			else if (expr === 'ATAN2') this.rpnp[steps].op = RRDRpn.OP.ATAN2; 
-			else if (expr === 'ATAN') this.rpnp[steps].op = RRDRpn.OP.ATAN; 
-			else if (expr === 'SQRT') this.rpnp[steps].op = RRDRpn.OP.SQRT; 
-			else if (expr === 'SORT') this.rpnp[steps].op = RRDRpn.OP.SORT; 
-			else if (expr === 'REV') this.rpnp[steps].op = RRDRpn.OP.REV; 
-			else if (expr === 'TREND') this.rpnp[steps].op = RRDRpn.OP.TREND; 
-			else if (expr === 'TRENDNAN') this.rpnp[steps].op = RRDRpn.OP.TRENDNAN; 
-			else if (expr === 'PREDICT') this.rpnp[steps].op = RRDRpn.OP.PREDICT; 
-			else if (expr === 'PREDICTSIGMA') this.rpnp[steps].op = RRDRpn.OP.PREDICTSIGMA; 
-			else if (expr === 'RAD2DEG') this.rpnp[steps].op = RRDRpn.OP.RAD2DEG; 
-			else if (expr === 'DEG2RAD') this.rpnp[steps].op = RRDRpn.OP.DEG2RAD; 
-			else if (expr === 'AVG') this.rpnp[steps].op = RRDRpn.OP.AVG; 
-			else if (expr === 'ABS') this.rpnp[steps].op = RRDRpn.OP.ABS; 
-			else if (expr === 'ADDNAN') this.rpnp[steps].op = RRDRpn.OP.ADDNAN; 
+			}
+			else if (expr === 'PREV') this.rpnp[steps].op = RRDRpn.OP.PREV;
+			else if (expr === 'INF') this.rpnp[steps].op = RRDRpn.OP.INF;
+			else if (expr === 'ISINF') this.rpnp[steps].op = RRDRpn.OP.ISINF;
+			else if (expr === 'NOW') this.rpnp[steps].op = RRDRpn.OP.NOW;
+			else if (expr === 'TIME') this.rpnp[steps].op = RRDRpn.OP.TIME;
+			else if (expr === 'ATAN2') this.rpnp[steps].op = RRDRpn.OP.ATAN2;
+			else if (expr === 'ATAN') this.rpnp[steps].op = RRDRpn.OP.ATAN;
+			else if (expr === 'SQRT') this.rpnp[steps].op = RRDRpn.OP.SQRT;
+			else if (expr === 'SORT') this.rpnp[steps].op = RRDRpn.OP.SORT;
+			else if (expr === 'REV') this.rpnp[steps].op = RRDRpn.OP.REV;
+			else if (expr === 'TREND') this.rpnp[steps].op = RRDRpn.OP.TREND;
+			else if (expr === 'TRENDNAN') this.rpnp[steps].op = RRDRpn.OP.TRENDNAN;
+			else if (expr === 'PREDICT') this.rpnp[steps].op = RRDRpn.OP.PREDICT;
+			else if (expr === 'PREDICTSIGMA') this.rpnp[steps].op = RRDRpn.OP.PREDICTSIGMA;
+			else if (expr === 'RAD2DEG') this.rpnp[steps].op = RRDRpn.OP.RAD2DEG;
+			else if (expr === 'DEG2RAD') this.rpnp[steps].op = RRDRpn.OP.DEG2RAD;
+			else if (expr === 'AVG') this.rpnp[steps].op = RRDRpn.OP.AVG;
+			else if (expr === 'ABS') this.rpnp[steps].op = RRDRpn.OP.ABS;
+			else if (expr === 'ADDNAN') this.rpnp[steps].op = RRDRpn.OP.ADDNAN;
 			else if (/[-_A-Za-z0-9]+/.test(expr)) {
 				this.rpnp[steps].ptr = this.find_var(gdes, exprs[i]);
 				this.rpnp[steps].op = RRDRpn.OP.VARIABLE;
@@ -733,7 +733,7 @@ RRDRpn.prototype = {
     }
 		this.rpnp[steps + 1] = {};
     this.rpnp[steps + 1].op = RRDRpn.OP.END;
-		
+
 	},
 	compare_double: function(x, y)
 	{
@@ -752,7 +752,7 @@ RRDRpn.prototype = {
 	    pY = parseInt(tmp[2], 10) - (tmp[1] + '').length;
 
   	  if (pY > p) p = pY;
-	
+
   	  tmp2 = (x % y);
 
 	    if (p < -100 || p > 20) {
@@ -766,7 +766,7 @@ RRDRpn.prototype = {
 	calc: function (data_idx, output, output_idx)
 	{
 		var stptr = -1;
-		
+
 		this.rpnstack = [];
 
 		for (var rpi = 0; this.rpnp[rpi].op != RRDRpn.OP.END; rpi++) {
@@ -780,10 +780,10 @@ RRDRpn.prototype = {
 						throw "VDEF made it into rpn_calc... aborting";
 					} else {
 						if (this.rpnp[rpi].op == RRDRpn.OP.VARIABLE) {
-							this.rpnstack[++stptr] = this.rpnp[rpi].data[this.rpnp[rpi].pdata]; 
+							this.rpnstack[++stptr] = this.rpnp[rpi].data[this.rpnp[rpi].pdata];
 						} else {
 							if ((output_idx) <= 0) this.rpnstack[++stptr] = Number.NaN;
-							else this.rpnstack[++stptr] = this.rpnp[rpi].data[this.rpnp[rpi].pdata - this.rpnp[rpi].ds_cnt]; 
+							else this.rpnstack[++stptr] = this.rpnp[rpi].data[this.rpnp[rpi].pdata - this.rpnp[rpi].ds_cnt];
 						}
 						if (data_idx % this.rpnp[rpi].step == 0) {
 							this.rpnp[rpi].pdata +=  this.rpnp[rpi].ds_cnt;
@@ -1016,10 +1016,10 @@ RRDRpn.prototype = {
 				case RRDRpn.OP.SORT:
 					if(stptr < 0) throw RRDRpn.STACK_UNDERFLOW;
 					var spn = this.rpnstack[stptr--];
-					if(stptr < spn - 1) throw RRDRpn.STACK_UNDERFLOW;	
+					if(stptr < spn - 1) throw RRDRpn.STACK_UNDERFLOW;
 					var array = this.rpnstack (stptr - spn + 1, stptr +1);
 					array.sort(this.rpn_compare_double);
-					for (var i=stptr - spn + 1, ii=0; i < (stptr +1) ; i++, ii++) 
+					for (var i=stptr - spn + 1, ii=0; i < (stptr +1) ; i++, ii++)
 						this.rpnstack[i] = array[ii];
 					// qsort(this.rpnstack + stptr - spn + 1, spn, sizeof(double), rpn_compare_double);
 					break;
@@ -1029,7 +1029,7 @@ RRDRpn.prototype = {
 					if(stptr < spn - 1) throw RRDRpn.STACK_UNDERFLOW;
 					var array = this.rpnstack (stptr - spn + 1, stptr +1);
 					array.reverse();
-					for (var i=stptr - spn + 1, ii=0; i < (stptr +1) ; i++, ii++) 
+					for (var i=stptr - spn + 1, ii=0; i < (stptr +1) ; i++, ii++)
 						this.rpnstack[i] = array[ii];
 //					var p, q;
 //					p = this.rpnstack + stptr - spn + 1;
@@ -1061,7 +1061,7 @@ RRDRpn.prototype = {
 					for(var loop=0;loop<doshifts;loop++) {
 						var shiftstep=1;
 						if (shifts<0) shiftstep = loop*this.rpnstack[stptr];
-						else shiftstep = this.rpnstack[stptr+loop]; 	
+						else shiftstep = this.rpnstack[stptr+loop];
 						if(shiftstep <0) {
 							throw "negative shift step not allowed: "+shiftstep;
 						}
@@ -1116,7 +1116,7 @@ RRDRpn.prototype = {
 								}
 								dur -= step;
 							} while (dur > 0);
-				
+
 							this.rpnstack[--stptr] = (count == 0) ? Number.NaN : (accum / count);
 						} else this.rpnstack[--stptr] = Number.NaN;
 					}
@@ -1152,7 +1152,7 @@ RRDRpn.prototype = {
 	}
 }
 
-var RRDGraphDesc = function() { 
+var RRDGraphDesc = function() {
 	this.init.apply(this, arguments);
 };
 
@@ -1213,7 +1213,7 @@ RRDGraphDesc.prototype = {
 
 	txtalign: 0,   /* change default alignment strategy for text */
 
-	init: function (graph) 
+	init: function (graph)
 	{
 		this.step = graph.step;
 		this.step_orig = graph.step;
@@ -1221,7 +1221,7 @@ RRDGraphDesc.prototype = {
     this.start_orig = graph.start;
 		this.end = graph.end;
     this.end_orig = graph.end;
-		this.cf = RRDGraphDesc.CF.AVERAGE;     
+		this.cf = RRDGraphDesc.CF.AVERAGE;
 		this.cf_reduce = RRDGraphDesc.CF.AVERAGE;
 		this.data = [];
 		this.pdata = [];
@@ -1232,10 +1232,10 @@ RRDGraphDesc.prototype = {
 Date.prototype.getWeek = function() {
 	var onejan = new Date(this.getFullYear(),0,1);
 	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay()+1)/7);
-}  
+}
 
 
-var RRDGraph = function() { 
+var RRDGraph = function() {
 	this.init.apply(this, arguments);
 };
 
@@ -1249,7 +1249,7 @@ RRDGraph.fmonths = [ 'January', 'February', 'March', 'April', 'May', 'June', 'Ju
 RRDGraph.TMT = { SECOND: 0, MINUTE: 1, HOUR: 2, DAY: 3, WEEK: 4, MONTH: 5 , YEAR: 6 };
 
 RRDGraph.prototype = {
-	
+
 	xlab: [ {minsec: 0, length: 0, gridtm: RRDGraph.TMT.SECOND, gridst: 30, mgridtm: RRDGraph.TMT.MINUTE, mgridst: 5, labtm: RRDGraph.TMT.MINUTE, labst: 5, precis: 0, stst: function (date) { return RRDGraph.pad2(date.getHours())+':'+RRDGraph.pad2(date.getMinutes()); }} ,
 		{minsec: 2, length: 0, gridtm: RRDGraph.TMT.MINUTE, gridst: 1, mgridtm: RRDGraph.TMT.MINUTE, mgridst: 5, labtm: RRDGraph.TMT.MINUTE, labst: 5, precis: 0, stst: function (date) { return RRDGraph.pad2(date.getHours())+':'+RRDGraph.pad2(date.getMinutes()); }} ,
 		{minsec: 5, length: 0, gridtm: RRDGraph.TMT.MINUTE, gridst: 2, mgridtm: RRDGraph.TMT.MINUTE, mgridst: 10, labtm: RRDGraph.TMT.MINUTE, labst: 10, precis: 0, stst: function (date) { return RRDGraph.pad2(date.getHours())+':'+RRDGraph.pad2(date.getMinutes()); }} ,
@@ -1284,7 +1284,7 @@ RRDGraph.prototype = {
 		{grid: 100.0, lfac: [1, 2, 5, 10] } ,
 		{grid: 200.0, lfac: [1, 5, 10, 20] } ,
 		{grid: 500.0, lfac: [1, 2, 4, 10] },
-		{grid: 0.0, lfac: [0, 0, 0, 0] } 
+		{grid: 0.0, lfac: [0, 0, 0, 0] }
 	],
 	si_symbol: [
 		'a',                /* 10e-18 Atto */
@@ -1311,15 +1311,15 @@ RRDGraph.prototype = {
 	DEFAULT_FONT: 'DejaVu Sans Mono', //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier',
 // DEFAULT_FONT: 'DejaVuSansMono', //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier',
 // pt -> pt=px*72/96
-	TEXT: null,	
+	TEXT: null,
 	MGRIDWIDTH: 0.6,
 	GRIDWIDTH: 0.4,
-	
+
 	YLEGEND_ANGLE: 90.0,
-		
+
 	LEGEND_POS: { NORTH: 0, WEST: 1, SOUTH: 2, EAST: 3 },
 	LEGEND_DIR: { TOP_DOWN: 0, BOTTOM_UP: 1 },
-		
+
 	canvas: null,
 	ctx: null,
 	xsize: 400, /* graph area size in pixels */
@@ -1342,7 +1342,7 @@ RRDGraph.prototype = {
 	ylabfact: 0, /* every how many y grid shall a label be written ? */
 	tabwidth: 40, /* tabwdith */
 	start: 0,   /* what time does the graph cover */
-	start_t: null, 
+	start_t: null,
 	end: 0,
 	end_t: null,
 	step: 0, /* any preference for the default step ? */
@@ -1369,7 +1369,7 @@ RRDGraph.prototype = {
 	yOriginLegendY: 0,
 	xOriginLegendY2: 0, /* where is the origin of the second y legend */
 	yOriginLegendY2: 0,
-	xOriginLegend: 0, /* where is the origin of the legend */	
+	xOriginLegend: 0, /* where is the origin of the legend */
 	yOriginLegend: 0,
 	ximg: 0, /* total size of the image */
 	yimg: 0,
@@ -1403,11 +1403,11 @@ RRDGraph.prototype = {
 	gdes: null,
 
 	ytr_pixie: 0,
-	xtr_pixie: 0,	
+	xtr_pixie: 0,
 
 	rrdfiles: null,
 
-	init: function (canvasId) 
+	init: function (canvasId)
 	{
 		this.canvas = document.getElementById(canvasId);
 		this.ctx = this.canvas.getContext('2d');
@@ -1416,7 +1416,7 @@ RRDGraph.prototype = {
 		this.AlmostEqualInt = new Int32Array(this.AlmostEqualBuffer);
 		this.AlmostEqualFloat = new Float32Array(this.AlmostEqualBuffer);
 
-		this.legenddirection = this.LEGEND_DIR.TOP_DOWN;		
+		this.legenddirection = this.LEGEND_DIR.TOP_DOWN;
 		this.legendposition = this.LEGEND_POS.SOUTH;
 		this.gdes = [];
 		this.rrdfiles = {};
@@ -1437,17 +1437,17 @@ RRDGraph.prototype = {
 									AXIS: 'rgba(31, 31, 31, 1.0)',
 									FRAME: 'rgba(0, 0, 0, 1.0)' };
 
-		
+
 		this.start_t = new RRDTime("end-24h");
 		this.end_t = new RRDTime("now");
 	},
 	set_default_font: function (name)
 	{
-		for (var font in this.TEXT) 
+		for (var font in this.TEXT)
 			this.TEXT[font].font = name;
 	},
 	set_option: function(option, value)
-	{	
+	{
 		switch(option) {
 			case 'alt-autoscale':
 			case 'A':
@@ -1459,10 +1459,10 @@ RRDGraph.prototype = {
 				if (this.base !== 1000 && this.base !== 1024)
 					throw 'the only sensible value for base apart from 1000 is 1024';
 				break;
-			case 'color':		
-			case 'c':	
+			case 'color':
+			case 'c':
 				var index = value.indexOf('#');
-				if (index === -1) 
+				if (index === -1)
 					throw "invalid color def format";
 				var name = value.substr(0,index);
 				if (!this.GRC[name])
@@ -1494,7 +1494,7 @@ RRDGraph.prototype = {
 			case 'G':
 			 // im->graph_antialias
 				break;
-			case 'no-legend':	
+			case 'no-legend':
 			case 'g':
 				this.no_legend = true;
 				break;
@@ -1506,14 +1506,14 @@ RRDGraph.prototype = {
 			case 'I':
 				this.no_minor = false;
 				break;
-			case 'interlaced':	
+			case 'interlaced':
 			case 'i':
 				break;
 			case 'alt-autoscale-min':
 			case 'J':
 				this.alt_autoscale_min = true;
 				break;
-			case 'only-graph':	
+			case 'only-graph':
 			case 'j':
 				this.only_graph = true;
 				break;
@@ -1526,14 +1526,14 @@ RRDGraph.prototype = {
 			case 'l':
 				this.setminval = parseFloat(value)
 				break;
-			case 'alt-autoscale-max':	
+			case 'alt-autoscale-max':
 			case 'M':
 				this.alt_autoscale_max = true;
 				break;
-			case 'zoom':		
+			case 'zoom':
 			case 'm':
 				this.zoom = parseFloat(value);
-				if (this.zoom <= 0.0) 
+				if (this.zoom <= 0.0)
 					throw "zoom factor must be > 0";
 				break;
 			case 'no-gridfit':
@@ -1543,20 +1543,20 @@ RRDGraph.prototype = {
 			case 'font':
 			case 'n':
 				var args = value.split(':');
-				if (args.length !== 3) 
+				if (args.length !== 3)
 					throw "invalid text property format";
 				if (!this.TEXT[args[0]])
 					throw "invalid fonttag '"+args[0]+"'"
-				if (args[1] > 0) 
+				if (args[1] > 0)
 					this.TEXT[args[0]].size = args[1];
 				if (args[2])
 					this.TEXT[args[0]].font = args[2];
 				break;
-			case 'logarithmic':	
+			case 'logarithmic':
 			case 'o':
 				this.logarithmic = true;
 				break;
-			case 'pango-markup':	
+			case 'pango-markup':
 			case 'P':
 				// im->with_markup = 1;
 				break;
@@ -1580,7 +1580,7 @@ RRDGraph.prototype = {
 			case 'T':
 				this.tabwidth = parseFloat(value);
 				break;
-			case 'title':	
+			case 'title':
 			case 't':
 				this.title = value;
 				break;
@@ -1596,10 +1596,10 @@ RRDGraph.prototype = {
 			case 'W':
 				this.watermark = value;
 				break;
-			case 'width':	
+			case 'width':
 			case 'w':
 				this.xsize = parseInt(value);
-				if (this.xsize < 10) 	
+				if (this.xsize < 10)
 					throw "width below 10 pixels";
 				break;
 			case 'units-exponent':
@@ -1608,11 +1608,11 @@ RRDGraph.prototype = {
 				break;
 			case 'x-grid':
 			case 'x':
-				if (value === 'none')  { 
+				if (value === 'none')  {
 					this.draw_x_grid = false;
 				} else {
 					var args = value.split(':');
-					if (args.length !== 8) 
+					if (args.length !== 8)
 						throw "invalid x-grid format";
 					this.xlab_user.gridtm = this.tmt_conv(args[0]);
 					if (this.xlab_user.gridtm < 0)
@@ -1636,16 +1636,16 @@ RRDGraph.prototype = {
 			case 'Y':
 				this.alt_y_grid = true;
 				break;
-			case 'y-grid':	
+			case 'y-grid':
 			case 'y':
-				if (value === 'none')  { 
+				if (value === 'none')  {
 					this.draw_y_grid = false;
 				} else {
 					var index = value.indexOf(':');
-					if (index === -1) 
+					if (index === -1)
 						throw "invalid y-grid format";
 					this.ygridstep = parseFloat(value.substr(0,index));
-					if (this.ygridstep <= 0) 
+					if (this.ygridstep <= 0)
 						throw "grid step must be > 0";
 					this.ylabfact = parseInt(value.substr(index+1));
 					if (this.ylabfact < 1)
@@ -1657,7 +1657,7 @@ RRDGraph.prototype = {
 				this.lazy = 1;
 				break;
 			case 'units':
-				if (this.force_units) 
+				if (this.force_units)
 					throw "--units can only be used once!";
 				if (value === 'si')
 					this.force_units_si = true;
@@ -1666,12 +1666,12 @@ RRDGraph.prototype = {
 				break;
 			case 'alt-y-mrtg':
 				break;
-			case 'disable-rrdtool-tag':	
+			case 'disable-rrdtool-tag':
 				this.no_rrdtool_tag = true;
 				break;
 			case 'right-axis':
 				var index = value.indexOf(':');
-				if (index === -1) 
+				if (index === -1)
 					throw "invalid right-axis format expected scale:shift";
 				this.second_axis_scale = parseFloat(value.substr(0,index));
 				if(this.second_axis_scale === 0)
@@ -1711,7 +1711,7 @@ RRDGraph.prototype = {
 				break;
 			case 'grid-dash':
 				var index = value.indexOf(':');
-				if (index === -1) 
+				if (index === -1)
 					throw "expected grid-dash format float:float";
 				this.grid_dash_on = parseFloat(value.substr(0,index));
 				this.grid_dash_off = parseFloat(value.substr(index+1));
@@ -1724,7 +1724,7 @@ RRDGraph.prototype = {
 		}
 
 	},
-	parse_color: function(str) 
+	parse_color: function(str)
 	{
 		var bits;
 		if ((bits = /^#?([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/.exec(str))) {
@@ -1754,7 +1754,7 @@ RRDGraph.prototype = {
 
 		while (i < len) {
 			var arg = lines[i];
-			if (arg.charAt(0) === '"' && arg.charAt(arg.length-1) === '"') 
+			if (arg.charAt(0) === '"' && arg.charAt(arg.length-1) === '"')
 				arg = arg.substr(1,arg.length-2);
 			if (/^LINE[0-9.]+:/.test(arg)) {
 				this.parse_line(arg);
@@ -1783,11 +1783,11 @@ RRDGraph.prototype = {
       } else if (arg.charAt(0) === '-') {
 				var strip = 1;
 				if (arg.length > 1 && arg.charAt(1) === '-') {
-					strip = 2;	
+					strip = 2;
 				}
 				var option = arg.substr(strip);
 				var value = undefined;
-				
+
 				if (option.indexOf('=') !== -1) {
 					var index = option.indexOf('=');
 					value = option.substr(index+1);
@@ -1805,12 +1805,12 @@ RRDGraph.prototype = {
 							!/^"?VRULE:/.test(lines[i+1]) &&
 							!/^"?TICK:/.test(lines[i+1]) &&
 							!/^"?TEXTALING:/.test(lines[i+1]) &&
-							!/^"?SHIFT:/.test(lines[i+1]) 
+							!/^"?SHIFT:/.test(lines[i+1])
 							) {
 						i++;
-						if (lines[i].charAt(0) === '"' && lines[i].charAt(lines[i].length-1) === '"') 
-							value = lines[i].substr(1,lines[i].length-2);	
-						else  
+						if (lines[i].charAt(0) === '"' && lines[i].charAt(lines[i].length-1) === '"')
+							value = lines[i].substr(1,lines[i].length-2);
+						else
 							value = lines[i];
 					}
 				}
@@ -1825,28 +1825,28 @@ RRDGraph.prototype = {
 		this.end = start_end[1];
 	},
 	sprintf: function()
-	{		
+	{
 		var argc = 0;
 		var args = arguments;
 		var fmt = args[argc++];
-		
+
 		function format (match, width, dot, precision, length, conversion)
 		{
-			if (match === '%%') return '%';		
-	
+			if (match === '%%') return '%';
+
 			var value = args[argc++];
 			var prefix;
 
-			if (width === undefined) 
+			if (width === undefined)
 				width = 0;
-			else 
+			else
 				width = +width;
-			
+
 			if (precision === undefined)
 				precision = conversion == 'd' ? 0 : 6;
-			else 
+			else
 				precision = +precision;
-	
+
 			switch (conversion) {
 				case 's':
 				case 'c':
@@ -1877,10 +1877,10 @@ RRDGraph.prototype = {
 	strftime: function (ftm, time)
 	{
 		var d = new Date(time*1000);
-		
-		function format(match, opt) 
+
+		function format(match, opt)
 		{
-			if (match === '%%') return '%';		
+			if (match === '%%') return '%';
 
 			switch (opt) {
 				case 'a':
@@ -1899,12 +1899,12 @@ RRDGraph.prototype = {
 					return d.toLocaleString();
 					break;
 				case 'd':
-					return RRDGraph.pad2(d.getDate());	
+					return RRDGraph.pad2(d.getDate());
 					break;
 				case 'H':
-					return RRDGraph.pad2(d.getHours());	
+					return RRDGraph.pad2(d.getHours());
 					break;
-				case 'I':	
+				case 'I':
 					var hours = d.getHours()%12;
 					return RRDGraph.pad2(hours === 0 ? 12 : hours);
 					break;
@@ -1912,7 +1912,7 @@ RRDGraph.prototype = {
 					var d01 = new Date (date.getFullYear(), 0, 1);
 					return RRDGraph.pad3(Math.ceil((d01.getTime()-d.getTime())/86400000));
 					break;
-				case 'm':	
+				case 'm':
 					return RRDGraph.pad2(d.getMonth());
 					break;
 				case 'M':
@@ -1948,7 +1948,7 @@ RRDGraph.prototype = {
 				case 'X':
 					return RRDGraph.pad2(d.getHours())+':'+RRDGraph.pad2(d.getMinutes())+':'+RRDGraph.pad2(d.getSeconds());
 					break;
-				case 'y':	
+				case 'y':
 					return RRDGraph.pad2(d.getFullYear()%100);
 					break;
 				case 'Y':
@@ -1993,11 +1993,11 @@ RRDGraph.prototype = {
 		Y0 = Math.round(Y0);
 		X1 = Math.round(X1);
 		Y1 = Math.round(Y1);
-	
+
 		this.ctx.save();
 		this.ctx.lineWidth = width;
 		this.ctx.strokeStyle = color;
-		
+
 		this.ctx.beginPath();
 		if (Y0 === Y1) {
 			Y0 += 0.5;
@@ -2104,7 +2104,7 @@ RRDGraph.prototype = {
 
 		this.ctx.fillStyle = color;
 		this.ctx.translate(x,y);
-		this.ctx.rotate(-angle*Math.PI/180.0);	
+		this.ctx.rotate(-angle*Math.PI/180.0);
 		this.ctx.fillText(text, 0, 0);
 		this.ctx.restore();
 	},
@@ -2116,7 +2116,7 @@ RRDGraph.prototype = {
 		this.ctx.restore();
 		return width.width;
 	},
-	xtr: function (mytime) 
+	xtr: function (mytime)
 	{
 		if (mytime === 0) {
 			this.xtr_pixie = this.xsize / (this.end - this.start);
@@ -2124,7 +2124,7 @@ RRDGraph.prototype = {
 		}
 		return this.xorigin + this.xtr_pixie * (mytime - this.start);
 	},
-	ytr: function (value) 
+	ytr: function (value)
 	{
 		var yval;
 
@@ -2146,7 +2146,7 @@ RRDGraph.prototype = {
 		return yval;
 	},
 	// http://stackoverflow.com/questions/3077718/converting-a-decimal-value-to-a-32bit-floating-point-hexadecimal
-	floatToIntBits: function (f) 
+	floatToIntBits: function (f)
 	{
 		var NAN_BITS = 0|0x7FC00000;
 		var INF_BITS = 0|0x7F800000;
@@ -2201,16 +2201,16 @@ RRDGraph.prototype = {
 	{
 		var aInt = this.floatToIntBits(A);
 		if (aInt < 0) aInt = 0x80000000 - aInt;
-                                                                                    
+
 		var bInt = this.floatToIntBits(B);
 		if (bInt < 0) bInt = 0x80000000 - bInt;
-                                                                                    
+
 		var intDiff = Math.abs(aInt - bInt);
 
-		if (intDiff <= maxUlps) 
+		if (intDiff <= maxUlps)
 			return true;
 
-		return false; 
+		return false;
 	},
 */
 	AlmostEqual2sComplement: function(A, B, maxUlps)
@@ -2221,16 +2221,16 @@ RRDGraph.prototype = {
 
 		var aInt = this.AlmostEqualInt[0];
 		if (aInt < 0) aInt = 0x80000000 - aInt;
-                                                                                    
+
 		var bInt = this.AlmostEqualInt[1];
 		if (bInt < 0) bInt = 0x80000000 - bInt;
-                                                                                    
+
 		var intDiff = Math.abs(aInt - bInt);
 
-		if (intDiff <= maxUlps) 
+		if (intDiff <= maxUlps)
 			return true;
 
-		return false; 
+		return false;
 	},
 /*
 //AlmostEqualRelative
@@ -2243,9 +2243,9 @@ RRDGraph.prototype = {
 			return true;
 
 		var relerror;
-  	if (Math.abs(B) > Math.abs(A)) 
+  	if (Math.abs(B) > Math.abs(A))
 			relerror = Math.abs((A - B) / B);
-		else 
+		else
 			relerror = Math.abs((A - B) / A);
 
 		if (relerror <= error)
@@ -2267,10 +2267,10 @@ RRDGraph.prototype = {
 		}
 		return val;
 	},
-	find_first_time: function(start, baseint, basestep) 
+	find_first_time: function(start, baseint, basestep)
 	{
 		var date = new Date(start*1000);
-		
+
 		switch (baseint) {
 			case RRDGraph.TMT.SECOND:
 				var sec = date.getSeconds();
@@ -2311,7 +2311,7 @@ RRDGraph.prototype = {
 				date.setHours(0);
 				date.setDate(1);
 				var mon = date.getMonth();
-				mon -= mon % basestep;	
+				mon -= mon % basestep;
 				date.setMonth(mon);
 				break;
 			case RRDGraph.TMT.YEAR:
@@ -2326,7 +2326,7 @@ RRDGraph.prototype = {
     	}
 		return Math.round(date.getTime()/1000.0);
 	},
-	find_next_time: function(current, baseint, basestep) 
+	find_next_time: function(current, baseint, basestep)
 	{
 		var date = new Date(current*1000);
 		var limit = 2;
@@ -2440,10 +2440,10 @@ RRDGraph.prototype = {
 					} else if (!this.gdes[i].strftm && this.gdes[i].format.indexOf('%s') != -1) {
 						//[printval, si_symb, magfact] = this.auto_scale(printval, si_symb, magfact);
 						var dummy = this.auto_scale(printval, si_symb, magfact); printval = dummy[0]; si_symb = dummy[1]; magfact = dummy[2];
-		
+
 					}
 
-//          if (this.gdes[i].gf === RRDGraphDesc.GF.PRINT) { 
+//          if (this.gdes[i].gf === RRDGraphDesc.GF.PRINT) {
 //            var prline;
 //
 //            if (this.gdes[i].strftm) {
@@ -2494,7 +2494,7 @@ RRDGraph.prototype = {
     }
 		return graphelement;
 	},
-	reduce_data: function(gdes, cur_step) 
+	reduce_data: function(gdes, cur_step)
 	{
     var reduce_factor = Math.ceil(gdes.step / cur_step);
     var col, dst_row, row_cnt, start_offset, end_offset, skiprows = 0;
@@ -2620,7 +2620,7 @@ RRDGraph.prototype = {
 			if (!skip) {
 				var ft_step = this.gdes[i].step;   /* ft_step will record what we got from fetch */
 				ft_step = this.rrd_fetch(this.gdes[i], ft_step);
-				if (ft_step < 0) 
+				if (ft_step < 0)
 					return -1;
 				this.gdes[i].data_first = 1;
 				if (ft_step < this.gdes[i].step) {
@@ -2637,13 +2637,13 @@ RRDGraph.prototype = {
 					}
 			}
 
-			if (this.gdes[i].ds === -1) 
+			if (this.gdes[i].ds === -1)
 				throw "No DS called '"+this.gdes[i].ds_nam+"' in '"+this.gdes[i].rrd+"'";
     }
 
     return 0;
 	},
-	lcd: function (num) 
+	lcd: function (num)
 	{
 		var rest;
     for (var i = 0; num[i + 1] != 0; i++) {
@@ -2683,7 +2683,7 @@ RRDGraph.prototype = {
 					break;
         case RRDGraphDesc.GF.VDEF:
 					this.gdes[gdi].ds_cnt = 0;
-					if (this.vdef_calc(gdi)) 
+					if (this.vdef_calc(gdi))
 						throw "Error processing VDEF '"+this.gdes[gdi].vname+"%s'";
 					break;
         case RRDGraphDesc.GF.CDEF:
@@ -2695,7 +2695,7 @@ RRDGraph.prototype = {
 					var steparray = [];
 					var stepcnt = 0;
 					dataidx = -1;
-					
+
 					var rpnp =  this.gdes[gdi].rpnp.rpnp;
 					for (var rpi = 0; rpnp[rpi].op != RRDRpn.OP.END; rpi++) {
 						if (rpnp[rpi].op === RRDRpn.OP.VARIABLE || rpnp[rpi].op === RRDRpn.OP.PREV_OTHER) {
@@ -2707,9 +2707,9 @@ RRDGraph.prototype = {
 								++stepcnt;
 								steparray[stepcnt - 1] = this.gdes[ptr].step;
 
-								if (this.gdes[gdi].start < this.gdes[ptr].start) 
+								if (this.gdes[gdi].start < this.gdes[ptr].start)
 									this.gdes[gdi].start = this.gdes[ptr].start;
-								if (this.gdes[gdi].end === 0 || this.gdes[gdi].end > this.gdes[ptr].end) 
+								if (this.gdes[gdi].end === 0 || this.gdes[gdi].end > this.gdes[ptr].end)
 									this.gdes[gdi].end = this.gdes[ptr].end;
 
 								rpnp[rpi].data = this.gdes[ptr].data;
@@ -2718,7 +2718,7 @@ RRDGraph.prototype = {
 								rpnp[rpi].ds_cnt = this.gdes[ptr].ds_cnt;
 							}
 						}
-					} 
+					}
 					/* move the data pointers to the correct period */
 					for (var rpi = 0; rpnp[rpi].op != RRDRpn.OP.END; rpi++) {
 						if (rpnp[rpi].op === RRDRpn.OP.VARIABLE || rpnp[rpi].op === RRDRpn.OP.PREV_OTHER) {
@@ -2737,19 +2737,19 @@ RRDGraph.prototype = {
 					this.gdes[gdi].data = [];
 
           for (now = this.gdes[gdi].start + this.gdes[gdi].step; now <= this.gdes[gdi].end; now += this.gdes[gdi].step) {
-						if (this.gdes[gdi].rpnp.calc(now, this.gdes[gdi].data, ++dataidx) === -1) 
+						if (this.gdes[gdi].rpnp.calc(now, this.gdes[gdi].data, ++dataidx) === -1)
 							return -1;
-          } 
+          }
           break;
         default:
             continue;
         }
-    } 
+    }
     return 0;
 	},
-	data_proc: function() 
+	data_proc: function()
 	{
-    var pixstep = (this.end - this.start) / this.xsize; 
+    var pixstep = (this.end - this.start) / this.xsize;
     var paintval;
     var minval = Number.NaN, maxval = Number.NaN;
     var gr_time;
@@ -2767,7 +2767,7 @@ RRDGraph.prototype = {
 			gr_time = this.start + pixstep * i;  /* time of the current step */
 			paintval = 0.0;
 
-			for (var ii = 0 , gdes_c = this.gdes.length; ii < gdes_c; ii++) { 
+			for (var ii = 0 , gdes_c = this.gdes.length; ii < gdes_c; ii++) {
 				var value;
 				switch (this.gdes[ii].gf) {
 					case RRDGraphDesc.GF.LINE:
@@ -2809,7 +2809,7 @@ RRDGraph.prototype = {
 
     if (this.logarithmic) {
         if (isNaN(minval) || isNaN(maxval) || maxval <= 0) {
-            minval = 0.0;  
+            minval = 0.0;
             maxval = 5.1;
         }
         if (minval <= 0) minval = maxval / 10e8;
@@ -2865,11 +2865,11 @@ RRDGraph.prototype = {
 
     if (!this.no_legend && !this.only_graph) {
 			legspace = [];
-			for (var i = 0 , gdes_c = this.gdes.length; i < gdes_c; i++) { 
+			for (var i = 0 , gdes_c = this.gdes.length; i < gdes_c; i++) {
         var prt_fctn; /*special printfunctions */
         if(calc_width) saved_legend = this.gdes[i].legend;
         fill_last = fill;
-        if (this.gdes[i].gf === RRDGraphDesc.GF.TEXTALIGN) 
+        if (this.gdes[i].gf === RRDGraphDesc.GF.TEXTALIGN)
 					default_txtalign = this.gdes[i].txtalign;
 
 				if (!this.force_rules_legend) {
@@ -2890,7 +2890,7 @@ RRDGraph.prototype = {
             prt_fctn = null;
         }
         /* only valid control codes */
-        if (prt_fctn != 'l' && prt_fctn != 'n' && prt_fctn != 'r' && prt_fctn != 'j' && prt_fctn != 'c' && 
+        if (prt_fctn != 'l' && prt_fctn != 'n' && prt_fctn != 'r' && prt_fctn != 'j' && prt_fctn != 'c' &&
 						prt_fctn != 'u' && prt_fctn != 's' && prt_fctn != null  && prt_fctn != 'g') {
 						throw "Unknown control code at the end of "+this.gdes[i].legend+": "+prt_fctn;
         }
@@ -2959,7 +2959,7 @@ RRDGraph.prototype = {
           if (prt_fctn === 'r')
               leg_x = legendwidth - fill + border;
           for (ii = mark; ii <= i; ii++) {
-              if (this.gdes[ii].legend === '') continue; 
+              if (this.gdes[ii].legend === '') continue;
               this.gdes[ii].leg_x = leg_x;
               this.gdes[ii].leg_y = leg_y + border;
               leg_x += this.gfx_get_text_width(leg_x, this.TEXT.LEGEND, this.tabwidth, this.gdes[ii].legend) + legspace[ii] + glue;
@@ -2982,25 +2982,25 @@ RRDGraph.prototype = {
     }
     return 0;
 	},
-	axis_paint: function() 
+	axis_paint: function()
 	{
-		this.gfx_line(this.xorigin - 4, this.yorigin, 
-				this.xorigin + this.xsize + 4, this.yorigin, 
+		this.gfx_line(this.xorigin - 4, this.yorigin,
+				this.xorigin + this.xsize + 4, this.yorigin,
 				this.MGRIDWIDTH, this.GRC.AXIS);
 
-		this.gfx_line(this.xorigin, this.yorigin + 4, 
-				this.xorigin, this.yorigin - this.ysize - 4, 
+		this.gfx_line(this.xorigin, this.yorigin + 4,
+				this.xorigin, this.yorigin - this.ysize - 4,
 				this.MGRIDWIDTH, this.GRC.AXIS);
 
-		this.gfx_new_area(this.xorigin + this.xsize + 2, this.yorigin - 3, 
-				this.xorigin + this.xsize + 2, 
-				this.yorigin + 3, this.xorigin + this.xsize + 7, this.yorigin,  
+		this.gfx_new_area(this.xorigin + this.xsize + 2, this.yorigin - 3,
+				this.xorigin + this.xsize + 2,
+				this.yorigin + 3, this.xorigin + this.xsize + 7, this.yorigin,
 				this.GRC.ARROW);
 		this.gfx_close_path();
 
-		this.gfx_new_area(this.xorigin - 3, this.yorigin - this.ysize - 2, 
-				this.xorigin + 3, this.yorigin - this.ysize - 2, 
-				this.xorigin, this.yorigin - this.ysize - 7, 
+		this.gfx_new_area(this.xorigin - 3, this.yorigin - this.ysize - 2,
+				this.xorigin + 3, this.yorigin - this.ysize - 2,
+				this.xorigin, this.yorigin - this.ysize - 7,
 				this.GRC.ARROW);
 		this.gfx_close_path();
 
@@ -3031,10 +3031,10 @@ RRDGraph.prototype = {
 	horizontal_log_grid: function ()
 	{
     var yloglab = [
-			[ 1.0, 10., 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], 
-			[ 1.0, 5.0, 10., 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], 
-			[ 1.0, 2.0, 5.0, 7.0, 10., 0.0, 0.0, 0.0, 0.0, 0.0 ], 
-			[ 1.0, 2.0, 4.0, 6.0, 8.0, 10., 0.0, 0.0, 0.0, 0.0 ], 
+			[ 1.0, 10., 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+			[ 1.0, 5.0, 10., 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+			[ 1.0, 2.0, 5.0, 7.0, 10., 0.0, 0.0, 0.0, 0.0, 0.0 ],
+			[ 1.0, 2.0, 4.0, 6.0, 8.0, 10., 0.0, 0.0, 0.0, 0.0 ],
 			[	1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10. ],
 			[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] /* last line */
     ];
@@ -3125,7 +3125,7 @@ RRDGraph.prototype = {
             //[sval, symb, mfac ] = this.auto_scale(sval, symb, mfac);
             var dummy = this.auto_scale(sval, symb, mfac); sval = dummy[0]; symb = dummy[1]; mfac = dummy[2];
             graph_label_right = this.sprintf("%4.0f %s", sval,symb);
-          } else { 
+          } else {
 						graph_label_right = this.sprintf("%3.0e", sval);
           }
         } else {
@@ -3165,7 +3165,7 @@ RRDGraph.prototype = {
 					this.gfx_line(X1, Y0, X1 + 2, Y0, this.GRIDWIDTH, this.GRC.GRID);
 					this.gfx_dashed_line(X0 - 1, Y0, X1 + 1, Y0, this.GRIDWIDTH, this.GRC.GRID, this.grid_dash_on, this.grid_dash_off);
 				}
-			}	
+			}
 			if (yloglab[mid][++flab] === 10.0) { /* next decade */
 				flab = 0;
 				val_exp += exfrac;
@@ -3216,9 +3216,9 @@ RRDGraph.prototype = {
 		if (this.xlab_user.minsec === -1) {
 			factor = (this.end - this.start) / this.xsize;
 			xlab_sel = 0;
-			
+
 			while (this.xlab[xlab_sel + 1].minsec != -1 && this.xlab[xlab_sel + 1].minsec <= factor) xlab_sel++;
-			if (xlab_sel === 0) xlab_sel=1; // FIXME XXX XXX xlab_sel == 0 ??? 
+			if (xlab_sel === 0) xlab_sel=1; // FIXME XXX XXX xlab_sel == 0 ???
 			while (this.xlab[xlab_sel - 1].minsec === this.xlab[xlab_sel].minsec && this.xlab[xlab_sel].length > (this.end - this.start)) xlab_sel--;
 			this.xlab_user = this.xlab[xlab_sel];
 
@@ -3233,8 +3233,8 @@ RRDGraph.prototype = {
 			     	ti = this.find_next_time(ti, this.xlab_user.gridtm, this.xlab_user.gridst)) {
 			    if (ti < this.start || ti > this.end) continue;
 			    while (timajor < ti && timajor != -1) timajor = this.find_next_time(timajor, this.xlab_user.mgridtm, this.xlab_user.mgridst);
-			    if (timajor === -1) break; 
-			    if (ti === timajor) continue;   
+			    if (timajor === -1) break;
+			    if (ti === timajor) continue;
 			    X0 = this.xtr(ti);
 			    this.gfx_line(X0, Y1 - 2, X0, Y1, this.GRIDWIDTH, this.GRC.GRID);
 			    this.gfx_line(X0, Y0, X0, Y0 + 2, this.GRIDWIDTH, this.GRC.GRID);
@@ -3258,7 +3258,7 @@ RRDGraph.prototype = {
 					(ti <= this.end - this.xlab_user.precis / 2) && ti != -1;
 					ti = this.find_next_time(ti, this.xlab_user.labtm, this.xlab_user.labst)
 			) {
-			tilab = ti + this.xlab_user.precis / 2;  
+			tilab = ti + this.xlab_user.precis / 2;
 			if (tilab < this.start || tilab > this.end)
 			    continue;
 			//localtime_r(&tilab, &tm); FIXME
@@ -3271,7 +3271,7 @@ RRDGraph.prototype = {
 	},
 	auto_scale: function (value, symb_ptr, magfact)
 	{
-    var symbol = [ 
+    var symbol = [
 				'a', 		/* 10e-18 Atto */
         'f',    /* 10e-15 Femto */
         'p',    /* 10e-12 Pico */
@@ -3305,7 +3305,7 @@ RRDGraph.prototype = {
     }
 		return [value, symb_ptr, magfact];
 	},
-	si_unit: function() 
+	si_unit: function()
 	{
 		var digits;
 		var viewdigits = 0;
@@ -3371,7 +3371,7 @@ RRDGraph.prototype = {
 			this.maxval = this.ylabfact * this.ygridstep * Math.ceil(this.maxval / (this.ylabfact * this.ygridstep));
     }
 	},
-	calc_horizontal_grid: function() 
+	calc_horizontal_grid: function()
 	{
 		var range;
 		var scaledrange;
@@ -3436,7 +3436,7 @@ RRDGraph.prototype = {
 		}
     return true;
 	},
-	draw_horizontal_grid: function() 
+	draw_horizontal_grid: function()
 	{
 		var i;
 		var scaledstep;
@@ -3464,7 +3464,7 @@ RRDGraph.prototype = {
 							graph_label = this.sprintf(this.ygrid_scale.labfmt, scaledstep * i); // FIXME
 						} else {
 							if (MaxY < 10) {
-								graph_label = this.sprintf("%4.1f", scaledstep * i);	
+								graph_label = this.sprintf("%4.1f", scaledstep * i);
 								//var dummy = scaledstep * i; // FIXME
 								//graph_label = lpad(dummy.toFixed(1),' ',4);
 							} else {
@@ -3479,11 +3479,11 @@ RRDGraph.prototype = {
 							graph_label = this.sprintf(this.ygrid_scale.labfmt, scaledstep * i, sisym);
 						} else {
 							if (MaxY < 10) {
-								graph_label = this.sprintf("%4.1f %s", scaledstep * i, sisym); 
+								graph_label = this.sprintf("%4.1f %s", scaledstep * i, sisym);
 								//var dummy = scaledstep * i; // FIXME
 								//graph_label = lpad(dummy.toFixed(1),' ',4)+' '+sisym;
 							} else {
-								graph_label = this.sprintf("%4.0f %s", scaledstep * i, sisym); 
+								graph_label = this.sprintf("%4.0f %s", scaledstep * i, sisym);
 								//var dummy = scaledstep * i; // FIXME
 								//graph_label = lpad(dummy.toFixed(),' ',4)+' '+sisym;
 							}
@@ -3496,7 +3496,7 @@ RRDGraph.prototype = {
 						if (!this.second_axis_format){
 							if (!second_axis_magfact){
 								var dummy = this.ygrid_scale.gridstep*(sgrid+egrid)/2.0*this.second_axis_scale+this.second_axis_shift;
-								[dummy, second_axis_symb, second_axis_magfact ] = this.auto_scale(dummy,second_axis_symb,second_axis_magfact); 
+								[dummy, second_axis_symb, second_axis_magfact ] = this.auto_scale(dummy,second_axis_symb,second_axis_magfact);
 							}
 							sval /= second_axis_magfact;
 							if(MaxY < 10) {
@@ -3522,7 +3522,7 @@ RRDGraph.prototype = {
 		}
 		return 1;
 	},
-	grid_paint: function() 
+	grid_paint: function()
 	{
 		var i;
 		var res = 0;
@@ -3541,12 +3541,12 @@ RRDGraph.prototype = {
 		        this.gfx_add_point(0, this.yimg);
 		        this.gfx_close_path();
 		}
-		if (this.draw_x_grid) 
+		if (this.draw_x_grid)
 			this.vertical_grid();
 		if (this.draw_y_grid) {
 			if (this.logarithmic)
 				res =	this.horizontal_log_grid();
-			else 
+			else
 				res = this.draw_horizontal_grid();
 		    /* dont draw horizontal grid if there is no min and max val */
 		  if (!res) {
@@ -3560,7 +3560,7 @@ RRDGraph.prototype = {
 		/* yaxis unit description */
 		if (this.ylegend){
 		    this.gfx_text(this.xOriginLegendY+10, this.yOriginLegendY,
-					this.GRC.FONT, this.TEXT.UNIT, this.tabwidth, this.YLEGEND_ANGLE, 
+					this.GRC.FONT, this.TEXT.UNIT, this.tabwidth, this.YLEGEND_ANGLE,
 					this.GFX_H.CENTER, this.GFX_V.CENTER, this.ylegend);
 
 		}
@@ -3587,16 +3587,16 @@ RRDGraph.prototype = {
 		    var color = this.parse_color(this.GRC.FONT)
 				color[3] = 0.3;
 				var water_color = this.color2rgba(color);
-		    this.gfx_text(this.ximg / 2, this.yimg - 6, water_color, this.TEXT.FONT , this.tabwidth, 0, 
+		    this.gfx_text(this.ximg / 2, this.yimg - 6, water_color, this.TEXT.FONT , this.tabwidth, 0,
 		    	 this.GFX_H.CENTER, this.GFX_V.BOTTOM, this.watermark);
 		}
 		/* graph labels */
 		if (!(this.no_legend) && !(this.only_graph)) {
-			for (var i = 0 , gdes_c = this.gdes.length; i < gdes_c; i++) { 
+			for (var i = 0 , gdes_c = this.gdes.length; i < gdes_c; i++) {
 				if (!this.gdes[i].legend) continue;
 				X0 = this.xOriginLegend + this.gdes[i].leg_x;
 				Y0 = this.legenddirection === this.LEGEND_DIR.TOP_DOWN ? this.yOriginLegend + this.gdes[i].leg_y : this.yOriginLegend + this.legendheight - this.gdes[i].leg_y;
-				this.gfx_text(X0, Y0, this.GRC.FONT, this.TEXT.LEGEND, this.tabwidth, 0.0, this.GFX_H.LEFT, this.GFX_V.BOTTOM, this.gdes[i].legend); 
+				this.gfx_text(X0, Y0, this.GRC.FONT, this.TEXT.LEGEND, this.tabwidth, 0.0, this.GFX_H.LEFT, this.GFX_V.BOTTOM, this.gdes[i].legend);
 				if (this.gdes[i].gf != RRDGraphDesc.GF.PRINT && this.gdes[i].gf != RRDGraphDesc.GF.GPRINT && this.gdes[i].gf != RRDGraphDesc.GF.COMMENT) {
 		    	var boxH, boxV;
 		    	var X1, Y1;
@@ -3606,14 +3606,14 @@ RRDGraph.prototype = {
 
 		    	Y0 -= boxV * 0.4;
 
-		    	if (this.dynamic_labels && this.gdes[i].gf === RRDGraphDesc.GF.HRULE) { 
+		    	if (this.dynamic_labels && this.gdes[i].gf === RRDGraphDesc.GF.HRULE) {
 		    		this.gfx_line(X0, Y0 - boxV / 2, X0 + boxH, Y0 - boxV / 2, 1.0, this.gdes[i].col);
-		    	} else if (this.dynamic_labels && this.gdes[i].gf === RRDGraphDesc.GF.VRULE) { 
+		    	} else if (this.dynamic_labels && this.gdes[i].gf === RRDGraphDesc.GF.VRULE) {
 		    		this.gfx_line(X0 + boxH / 2, Y0, X0 + boxH / 2, Y0 - boxV, 1.0, this.gdes[i].col);
-		    	} else if (this.dynamic_labels && this.gdes[i].gf === RRDGraphDesc.GF.LINE) { 
+		    	} else if (this.dynamic_labels && this.gdes[i].gf === RRDGraphDesc.GF.LINE) {
 		    		this.gfx_line(X0, Y0, X0 + boxH, Y0 - boxV, this.gdes[i].linewidth, this.gdes[i].col);
 		    	} else {
-		    		this.gfx_new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.GRC.BACK); 
+		    		this.gfx_new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.GRC.BACK);
 						this.gfx_add_point(Math.round(X0 + boxH)+0.5, Math.round(Y0 - boxV)+0.5);
 		    		this.gfx_close_path();
 		    		this.gfx_new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.gdes[i].col);
@@ -3648,13 +3648,13 @@ RRDGraph.prototype = {
 	},
 	graph_size_location: function (elements)
 	{
-		var Xvertical = 0;		
+		var Xvertical = 0;
 		var Xvertical2 = 0;
 		var Ytitle = 0;
 		var Xylabel = 0;
 		var Xmain = 0;
 		var Ymain = 0;
-		var Yxlabel = 0; 
+		var Yxlabel = 0;
 		var Xspacing = 15;
 		var Yspacing = 15;
 		var Ywatermark = 4;
@@ -3667,12 +3667,12 @@ RRDGraph.prototype = {
 			this.ytr(Number.NaN);
 			return 0;
 		}
-		
-		if(this.watermark) 
+
+		if(this.watermark)
 			Ywatermark = this.TEXT.WATERMARK.size * 1.5; // 2
-		if(this.ylegend) 
+		if(this.ylegend)
 			Xvertical = this.TEXT.UNIT.size * 1.5; // 2
-		if(this.second_axis_legend) 
+		if(this.second_axis_legend)
 			Xvertical2 = this.TEXT.UNIT.size * 1.5; // 2
 
 		if(this.title)
@@ -3680,8 +3680,8 @@ RRDGraph.prototype = {
 		else
 			Ytitle = 1.5 * Yspacing;
 
-		if (elements) {	
-			if (this.draw_x_grid) 
+		if (elements) {
+			if (this.draw_x_grid)
 				Yxlabel = this.TEXT.AXIS.size * 1.35; // 2.5 1.87
 			if (this.draw_y_grid || this.forceleftspace)  // FIXME
 				Xylabel = this.gfx_get_text_width(0, this.TEXT.AXIS, this.tabwidth, '0') * this.unitslength;
@@ -3729,7 +3729,7 @@ RRDGraph.prototype = {
 			if (this.watermark) Ymain -= Ywatermark;
 			if(Ymain < 1) Ymain = 1;
 			this.ysize = Ymain;
-		} else {            
+		} else {
 			if (elements) {
 //			Xmain = this.xsize; // + Xspacing;
 				Xmain = this.xsize + Xspacing; //FIXME ???
@@ -3845,7 +3845,7 @@ RRDGraph.prototype = {
 //		this.start = start_end[0];
 //		this.end = start_end[1];
 
-		if (this.start < 3600 * 24 * 365 * 10) 
+		if (this.start < 3600 * 24 * 365 * 10)
 			throw "the first entry to fetch should be after 1980 ("+this.start+"%ld)";
 
 		if (this.end < this.start)
@@ -3876,23 +3876,23 @@ RRDGraph.prototype = {
 		if (this.data_calc() === -1)
 			return -1;
 		var i = this.print_calc();
-		if (i < 0) 
+		if (i < 0)
 			return -1;
 		if (this.graph_size_location(i) === -1)
 			return -1;
-			
+
 		if (this.data_proc() === -1)
 			return -1;
-		if (!this.logarithmic) 
+		if (!this.logarithmic)
 			this.si_unit();
-		if (!this.rigid && !this.logarithmic) 
+		if (!this.rigid && !this.logarithmic)
 			this.expand_range();
-		
+
 		if (this.magfact === 0) this.magfact =1; // FIXME XXX XXX  logarithmic Â?
-	
-		if (!this.calc_horizontal_grid()) 
+
+		if (!this.calc_horizontal_grid())
 			return -1;
-		
+
 		this.ytr(Number.NaN);
 
 		this.canvas.height = this.yimg;
@@ -3906,10 +3906,10 @@ RRDGraph.prototype = {
 			this.yorigin, this.xorigin + this.xsize, this.yorigin - this.ysize, this.GRC.CANVAS);
 		this.gfx_add_point(this.xorigin, this.yorigin - this.ysize);
 		this.gfx_close_path();
-	
+
 //	this.ctx.rect(this.xorigin, this.yorigin - this.ysize - 1.0, this.xsize, this.ysize + 2.0);
 // 	this.ctx.clip();
-	
+
 		if (this.minval > 0.0) areazero = this.minval;
 		if (this.maxval < 0.0) areazero = this.maxval;
 
@@ -3942,9 +3942,9 @@ RRDGraph.prototype = {
 				case RRDGraphDesc.GF.AREA:
             var diffval = this.maxval - this.minval;
             var maxlimit = this.maxval + 9 * diffval;
-            var minlimit = this.minval - 9 * diffval;        
+            var minlimit = this.minval - 9 * diffval;
             for (var ii = 0; ii < this.xsize; ii++) {
-							if (!isNaN(this.gdes[i].p_data[ii])) { // FIXME NaN < ??? 
+							if (!isNaN(this.gdes[i].p_data[ii])) { // FIXME NaN < ???
 								if (!isFinite(this.gdes[i].p_data[ii])) {
 									if (this.gdes[i].p_data[ii] > 0) this.gdes[i].p_data[ii] = this.maxval;
 									else this.gdes[i].p_data[ii] = this.minval;
@@ -3952,7 +3952,7 @@ RRDGraph.prototype = {
 								if (this.gdes[i].p_data[ii] > maxlimit) this.gdes[i].p_data[ii] = maxlimit;
 								if (this.gdes[i].p_data[ii] < minlimit) this.gdes[i].p_data[ii] = minlimit;
 							}
-            } 
+            }
 						var color = this.parse_color(this.gdes[i].col); // if (this.gdes[i].col.alpha != 0.0) {
             if (color[3] != 0.0) {
 							if (this.gdes[i].gf === RRDGraphDesc.GF.LINE) {
@@ -3961,7 +3961,7 @@ RRDGraph.prototype = {
 
 								this.ctx.save();
 								this.ctx.beginPath();
-								this.ctx.lineWidth = this.gdes[i].linewidth;						
+								this.ctx.lineWidth = this.gdes[i].linewidth;
 								//if (this.gdes[i].dash) cairo_set_dash(this.cr, this.gdes[i].p_dashes, this.gdes[i].ndash, this.gdes[i].offset); FIXME
 								for (var ii = 1; ii < this.xsize; ii++) {
 									if (isNaN(this.gdes[i].p_data[ii]) || (this.slopemode && isNaN(this.gdes[i].p_data[ii - 1]))) {
@@ -4024,7 +4024,7 @@ RRDGraph.prototype = {
 								var foreX = [];
 								var backY = [];
 								var backX = [];
-								var drawem = false; 
+								var drawem = false;
 
 								for (ii = 0; ii <= this.xsize; ii++) {
 									var ybase, ytop;
@@ -4033,7 +4033,7 @@ RRDGraph.prototype = {
 										var cntI = 1;
 										var lastI = 0;
 
-										while (cntI < idxI && this.AlmostEqual2sComplement(foreY [lastI], foreY[cntI], 4) && this.AlmostEqual2sComplement(foreY [lastI], foreY [cntI + 1], 4)) 
+										while (cntI < idxI && this.AlmostEqual2sComplement(foreY [lastI], foreY[cntI], 4) && this.AlmostEqual2sComplement(foreY [lastI], foreY [cntI + 1], 4))
 											cntI++;
 											this.gfx_new_area(backX[0], backY[0], foreX[0], foreY[0], foreX[cntI], foreY[cntI], this.gdes[i].col);
 											while (cntI < idxI) {
@@ -4061,7 +4061,7 @@ RRDGraph.prototype = {
 										}
 										if (ii === this.xsize)
 											break;
-										if (!this.slopemode && ii === 0) 
+										if (!this.slopemode && ii === 0)
 												continue;
                         if (isNaN(this.gdes[i].p_data[ii])) {
                             drawem = true;
@@ -4091,7 +4091,7 @@ RRDGraph.prototype = {
                         foreY[idxI] = ytop + 0.2;
                         foreX[idxI] = ii + this.xorigin;
                     }
-                }    
+                }
             }
             /* if color != 0x0 */
             /* make sure we do not run into trouble when stacking on NaN */
@@ -4107,7 +4107,7 @@ RRDGraph.prototype = {
             throw "STACK should already be turned into LINE or AREA here";
             break;
 			}
-    }            
+    }
 // 	cairo_reset_clip(this.cr);
 		if (!this.only_graph)
 			this.grid_paint();
@@ -4137,8 +4137,8 @@ RRDGraph.prototype = {
 	find_var: function(key)
 	{
 		for (var ii = 0, gdes_c = this.gdes.length; ii < gdes_c; ii++) {
-        if ((this.gdes[ii].gf === RRDGraphDesc.GF.DEF || 
-							this.gdes[ii].gf === RRDGraphDesc.GF.VDEF || 
+        if ((this.gdes[ii].gf === RRDGraphDesc.GF.DEF ||
+							this.gdes[ii].gf === RRDGraphDesc.GF.VDEF ||
 							this.gdes[ii].gf === RRDGraphDesc.GF.CDEF)
             && this.gdes[ii].vname === key) {
             return ii;
@@ -4183,14 +4183,14 @@ RRDGraph.prototype = {
 		gdp.rrd = rrdfile;
 		gdp.ds_nam = name;
 		gdp.cf = this.cf_conv(cf);
-		
-		if (step != undefined && step != null) 
+
+		if (step != undefined && step != null)
 			gdp.step = step;
-		if (start != undefined && start != null) 
+		if (start != undefined && start != null)
 			start_t = new RRDTime(start);
-		if (end != undefined && end != null) 
+		if (end != undefined && end != null)
 			end_t = new RRDTime(end);
-		if (reduce  === undefined || reduce === null) 
+		if (reduce  === undefined || reduce === null)
 			gdp.cf_reduce = gdp.cf; // Â¿?
 		else
 			gdp.cf_reduce = this.cf_conv(reduce);
@@ -4210,13 +4210,13 @@ RRDGraph.prototype = {
 		var args = line.split(/:|=/);
 		this.create_cdef(args[1], args[2]);
 	},
-	create_cdef:function (vname, rpn) 
+	create_cdef:function (vname, rpn)
 	{
 		var gdp = new	RRDGraphDesc(this);
 		gdp.gf = RRDGraphDesc.GF.CDEF;
 		gdp.vname = vname
 		gdp.vidx = this.find_var(vname);
-		
+
 		gdp.rpnp = new RRDRpn(rpn,this.gdes);
 
 		gdp.legend = '';
@@ -4228,12 +4228,12 @@ RRDGraph.prototype = {
 		var args = line.split(/:|=/);
 		this.create_vdef(args[1], args[2]);
 	},
-	create_vdef:function (vname, rpn) 
+	create_vdef:function (vname, rpn)
 	{
 		var gdp = new	RRDGraphDesc(this);
 		gdp.gf = RRDGraphDesc.GF.VDEF;
 		gdp.vname = vname
-	
+
 		var index = rpn.indexOf(',');
 		var name = rpn.substring(0,index);
 		gdp.vidx = this.find_var(name); // FIXME checks
@@ -4263,7 +4263,7 @@ RRDGraph.prototype = {
 			throw "Cannot shift a VDEF: '%s' in line '"+this.gdes[gdp.vidx].vname+"'";
 		if  (this.gdes[gdp.vidx].gf !== RRDGraphDesc.GF.DEF && this.gdes[gdp.vidx].gf !== RRDGraphDesc.GF.CDEF)
 			throw "Encountered unknown type variable '"+this.gdes[gdp.vidx].vname+"'";
-	
+
 		gdp.shidx = this.find_var(offset);
 		if (gdp.shidx >= 0) {
 			if  (this.gdes[gdp.shidx].gf === RRDGraphDesc.GF.DEF || this.gdes[gdp.shidx].gf === RRDGraphDesc.GF.CDEF)
@@ -4281,7 +4281,7 @@ RRDGraph.prototype = {
 	parse_line: function (line)
 	{
 		var args = line.split(/#|:/);
-		var width = parseFloat(args[0].substr(4));	
+		var width = parseFloat(args[0].substr(4));
 		var stack = args[4] === 'STACK' ? true : undefined;
 		var color = this.parse_color(args[2]);
 		this.create_line(width, args[1], this.color2rgba(color), args[3], stack);
@@ -4324,7 +4324,7 @@ RRDGraph.prototype = {
 		else gdp.stack = stack;
 		gdp.format = gdp.legend;
 		this.gdes.push(gdp);
-	},	
+	},
 	// TICK:vname#rrggbb[aa][:fraction[:legend]]
 	parse_tick: function (line)
 	{
@@ -4339,7 +4339,7 @@ RRDGraph.prototype = {
 		gdp.vname = vname;
 		gdp.vidx = this.find_var(vname);
 		gdp.col = color;
-		if (legend !== undefined) 
+		if (legend !== undefined)
 			gdp.yrule = fraction;
 		if (legend === undefined) gdp.legend = '';
 		else gdp.legend = '  '+legend;
@@ -4359,7 +4359,7 @@ RRDGraph.prototype = {
 			for (var j = 3, xlen = args.length ; j < xlen ; j++) {
 				if (args[j] === 'strftime') {
 					strftime = true;
-				} else { 
+				} else {
 					if (m>0) {
 						format = format + ':'+ args[j];
 					} else {
@@ -4469,10 +4469,10 @@ RRDGraph.prototype = {
 		gdp.col = color;
 		if (legend === undefined) gdp.legend = '';
 		else gdp.legend = '  '+legend;
-		
+
 		this.gdes.push(gdp);
 	},
-	cf_conv: function (str) 
+	cf_conv: function (str)
 	{
 		switch (str){
     	case 'AVERAGE': return RRDGraphDesc.CF.AVERAGE;
@@ -4508,7 +4508,7 @@ RRDGraph.prototype = {
 		var func;
 		var n;
 
-    n = 0;	
+    n = 0;
 		var index = str.indexOf(',');
 		if (index != -1) {
 			param = parseFloat(str.substr(0,index));
@@ -4519,7 +4519,7 @@ RRDGraph.prototype = {
     }
 
 		gdes.vf = { op: null, param: null, val: null, when: null };
-		
+
     if (func === 'PERCENT') gdes.vf.op = RRDGraphDesc.VDEF.PERCENT;
     else if (func === 'PERCENTNAN') gdes.vf.op = RRDGraphDesc.VDEF.PERCENTNAN;
     else if (func === 'MAXIMUM') gdes.vf.op = RRDGraphDesc.VDEF.MAXIMUM;
@@ -4587,12 +4587,12 @@ RRDGraph.prototype = {
 		switch (dst.vf.op) {
 			case RRDGraphDesc.VDEF.PERCENT:
         var array = [];
-        var field;	
+        var field;
 
         for (step = 0; step < steps; step++) {
             array[step] = data[step * src.ds_cnt];
         }
-        array.sort(this.vdef_percent_compar); 
+        array.sort(this.vdef_percent_compar);
         field = Math.round((dst.vf.param * (steps - 1)) / 100.0);
         dst.vf.val = array[field];
         dst.vf.when = 0;   /* no time component */
@@ -4608,7 +4608,7 @@ RRDGraph.prototype = {
 						array[field] = data[step * src.ds_cnt];
 					}
 				}
-				array.sort(vdef_percent_compar); 
+				array.sort(vdef_percent_compar);
 				field = Math.round(dst.vf.param * (field - 1) / 100.0);
 				dst.vf.val = array[field];
 				dst.vf.when = 0;   /* no time component */
@@ -4717,13 +4717,13 @@ RRDGraph.prototype = {
 			case RRDGraphDesc.VDEF.LSLCORREL:
 				var cnt = 0;
 				var SUMx, SUMy, SUMxy, SUMxx, SUMyy, slope, y_intercept, correl;
-	
+
 				SUMx = 0;
 				SUMy = 0;
 				SUMxy = 0;
 				SUMxx = 0;
 				SUMyy = 0;
-		
+
 				for (step = 0; step < steps; step++) {
 					if (isFinite(data[step * src.ds_cnt])) {
 						cnt++;
@@ -4734,11 +4734,11 @@ RRDGraph.prototype = {
 						SUMyy += data[step * src.ds_cnt] * data[step * src.ds_cnt];
 					}
 				}
-	
+
 				slope = (SUMx * SUMy - cnt * SUMxy) / (SUMx * SUMx - cnt * SUMxx);
 				y_intercept = (SUMy - slope * SUMx) / cnt;
 				correl = (SUMxy - (SUMx * SUMy) / cnt) / Math.sqrt((SUMxx - (SUMx * SUMx) / cnt) * (SUMyy - (SUMy * SUMy) / cnt));
-	
+
 				if (cnt) {
 					if (dst.vf.op === RRDGraphDesc.VDEF.LSLSLOPE) {
 						dst.vf.val = slope;
@@ -4775,7 +4775,7 @@ RRDGraph.prototype = {
     /* If we reach this, both values must be finite */
     if (a < b) return -1;
     else return 1;
-	},	
+	},
 	rrd_fetch: function(gdp, ft_step)
 	{
     var cal_start, cal_end;
@@ -4793,7 +4793,7 @@ RRDGraph.prototype = {
 				rrd = this.rrdfiles[gdp.rrd];
 			} else {
 				var bf = FetchBinaryURL(gdp.rrd);
-				rrd = new RRDFile(bf);            
+				rrd = new RRDFile(bf);
 				this.rrdfiles[gdp.rrd] = rrd;
 			}
 		} catch(err) {
@@ -4808,11 +4808,11 @@ RRDGraph.prototype = {
 
     for (var i = 0; i < ds_cnt; i++)
 			gdp.ds_namv[i] = rrd.rrd_header.getDSbyIdx(i).getName();
-		
+
 		for (var i = 0; i < rra_cnt; i++) {
 			var rra = rrd.getRRAInfo(i);
 			if (this.cf_conv(rra.getCFName()) === cf_idx) {
-				cal_end = (rrd.getLastUpdate() - (rrd.getLastUpdate() % (rra.getPdpPerRow() * rra.pdp_step))); 
+				cal_end = (rrd.getLastUpdate() - (rrd.getLastUpdate() % (rra.getPdpPerRow() * rra.pdp_step)));
 				cal_start = (cal_end - (rra.getPdpPerRow() * rra.row_cnt * rra.pdp_step));
 				full_match = gdp.end - gdp.start
 
