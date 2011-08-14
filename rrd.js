@@ -440,7 +440,7 @@ RRDTime.prototype = {
             if (mon < 0 || mon > 11)
                 throw "did you really mean month "+(mon+1)+"?";
             if (mday < 1 || mday > 31)
-                throw "I'm afraid that "+mday+" is not a valid day of the month",
+                throw "I'm afraid that "+mday+" is not a valid day of the month";
             this.assign_date(mday, mon, year);
             break;
         }
@@ -912,7 +912,7 @@ RRDRpn.prototype = {
                     break;
                 case RRDRpn.OP.LT:
                     if(stptr < 1) throw RRDRpn.STACK_UNDERFLOW;
-                    if (isNaN(this.rpnstack[stptr - 1]));
+                    if (isNaN(this.rpnstack[stptr - 1])) {}
                     else if (isNaN(this.rpnstack[stptr]))
                         this.rpnstack[stptr - 1] = this.rpnstack[stptr];
                     else
@@ -921,7 +921,7 @@ RRDRpn.prototype = {
                     break;
                 case RRDRpn.OP.LE:
                     if(stptr < 1) throw RRDRpn.STACK_UNDERFLOW;
-                    if (isNaN(this.rpnstack[stptr - 1]));
+                    if (isNaN(this.rpnstack[stptr - 1])) {}
                     else if (isNaN(this.rpnstack[stptr]))
                         this.rpnstack[stptr - 1] = this.rpnstack[stptr];
                     else
@@ -930,7 +930,7 @@ RRDRpn.prototype = {
                     break;
                 case RRDRpn.OP.GT:
                     if(stptr < 1) throw RRDRpn.STACK_UNDERFLOW;
-                    if (isNaN(this.rpnstack[stptr - 1]));
+                    if (isNaN(this.rpnstack[stptr - 1])) {}
                     else if (isNaN(this.rpnstack[stptr]))
                         this.rpnstack[stptr - 1] = this.rpnstack[stptr];
                     else
@@ -939,7 +939,7 @@ RRDRpn.prototype = {
                     break;
                 case RRDRpn.OP.GE:
                     if(stptr < 1) throw RRDRpn.STACK_UNDERFLOW;
-                    if (isNaN(this.rpnstack[stptr - 1]));
+                    if (isNaN(this.rpnstack[stptr - 1])) {}
                     else if (isNaN(this.rpnstack[stptr]))
                         this.rpnstack[stptr - 1] = this.rpnstack[stptr];
                     else
@@ -948,7 +948,7 @@ RRDRpn.prototype = {
                     break;
                 case RRDRpn.OP.NE:
                     if(stptr < 1) throw RRDRpn.STACK_UNDERFLOW;
-                    if (isNaN(this.rpnstack[stptr - 1]));
+                    if (isNaN(this.rpnstack[stptr - 1])) {}
                     else if (isNaN(this.rpnstack[stptr]))
                         this.rpnstack[stptr - 1] = this.rpnstack[stptr];
                     else
@@ -957,7 +957,7 @@ RRDRpn.prototype = {
                     break;
                 case RRDRpn.OP.EQ:
                     if(stptr < 1) throw RRDRpn.STACK_UNDERFLOW;
-                    if (isNaN(this.rpnstack[stptr - 1]));
+                    if (isNaN(this.rpnstack[stptr - 1])) {}
                     else if (isNaN(this.rpnstack[stptr]))
                         this.rpnstack[stptr - 1] = this.rpnstack[stptr];
                     else
@@ -972,7 +972,7 @@ RRDRpn.prototype = {
                     break;
                 case RRDRpn.OP.MIN:
                     if(stptr < 1) throw RRDRpn.STACK_UNDERFLOW;
-                    if (isNaN(this.rpnstack[stptr - 1]));
+                    if (isNaN(this.rpnstack[stptr - 1])) {}
                     else if (isNaN(this.rpnstack[stptr]))
                         this.rpnstack[stptr - 1] = this.rpnstack[stptr];
                     else if (this.rpnstack[stptr - 1] > this.rpnstack[stptr])
@@ -981,7 +981,7 @@ RRDRpn.prototype = {
                     break;
                 case RRDRpn.OP.MAX:
                     if(stptr < 1) throw RRDRpn.STACK_UNDERFLOW;
-                    if (isNaN(this.rpnstack[stptr - 1]));
+                    if (isNaN(this.rpnstack[stptr - 1])) {}
                     else if (isNaN(this.rpnstack[stptr]))
                         this.rpnstack[stptr - 1] = this.rpnstack[stptr];
                     else if (this.rpnstack[stptr - 1] < this.rpnstack[stptr])
@@ -990,7 +990,7 @@ RRDRpn.prototype = {
                     break;
                 case RRDRpn.OP.LIMIT:
                     if(stptr < 2) throw RRDRpn.STACK_UNDERFLOW;
-                    if (isNaN(this.rpnstack[stptr - 2]));
+                    if (isNaN(this.rpnstack[stptr - 2])) {}
                     else if (isNaN(this.rpnstack[stptr - 1]))
                             this.rpnstack[stptr - 2] = this.rpnstack[stptr - 1];
                     else if (isNaN(this.rpnstack[stptr]))
@@ -3058,9 +3058,9 @@ RRDGraph.prototype = {
     }
     /* major spacing for less dynamic data */
     do {
-            mid++;
-            for (i = 0; yloglab[mid][i + 1] < 10.0; i++);
-            mspac = logscale * Math.log(10.0 / yloglab[mid][i])/Math.LN10;
+        mid++;
+        for (i = 0; yloglab[mid][i + 1] < 10.0; i++) {}
+        mspac = logscale * Math.log(10.0 / yloglab[mid][i])/Math.LN10;
     } while (mspac > 1.56 * this.TEXT.LEGEND.size && yloglab[mid][0] > 0); // FIXME 2->1.56 ??
     if (mid) mid--;
     /* find first value in yloglab */
@@ -3138,7 +3138,7 @@ RRDGraph.prototype = {
             if (mid < 4 && exfrac === 1) { /* minor grid */
                 if (flab === 0) { /* find first and last minor line behind current major line * i is the first line and j tha last */
                     min_exp = val_exp - 1;
-                    for (i = 1; yloglab[mid][i] < 10.0; i++);
+                    for (i = 1; yloglab[mid][i] < 10.0; i++) {}
                     i = yloglab[mid][i - 1] + 1;
                     j = 10;
                 } else {
@@ -3174,7 +3174,7 @@ RRDGraph.prototype = {
         if (mid < 4 && exfrac === 1) { /* draw minor lines after highest major line */
             if (flab === 0) { /* find first and last minor line below current major line * i is the first line and j tha last */
                 min_exp = val_exp - 1;
-                for (i = 1; yloglab[mid][i] < 10.0; i++);
+                for (i = 1; yloglab[mid][i] < 10.0; i++) {}
                 i = yloglab[mid][i - 1] + 1;
                 j = 10;
             } else {
