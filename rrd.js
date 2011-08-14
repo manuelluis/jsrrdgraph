@@ -24,9 +24,10 @@
 
 /**
  * @constructor
+ * @param {string} tspec
  */
-var RRDTime = function() {
-  this.parser.apply(this, arguments);
+var RRDTime = function(tspec) {
+  this.parser(tspec);
 };
 
 RRDTime.EOF = -1;
@@ -197,7 +198,7 @@ RRDTime.prototype = {
             this.tokidx++;
             if (!isNaN(this.token)) {
                 this.tokid = RRDTime.NUMBER;
-                this.token = parseInt(this.token);
+                this.token = parseInt(this.token, 10);
             } else if (this.token === ':') {
                 this.tokid = RRDTime.COLON;
             } else if (this.token === '.') {
@@ -416,9 +417,9 @@ RRDTime.prototype = {
         }
         if (mon > 19700101 && mon < 24000101) { /*works between 1900 and 2400 */
                     var str = this.token + '';
-                    year = parseInt(str.substr(0,4));
-                    mon = parseInt(str.substr(4,2));
-                    mday = parseInt(str.substr(6,2));
+                    year = parseInt(str.substr(0,4), 10);
+                    mon = parseInt(str.substr(4,2), 10);
+                    mday = parseInt(str.substr(6,2), 10);
                     this.gettok();
         } else {
           this.gettok();
@@ -1470,7 +1471,7 @@ RRDGraph.prototype = {
                 break;
             case 'base':
             case 'b':
-                this.base = parseInt(value);
+                this.base = parseInt(value, 10);
                 if (this.base !== 1000 && this.base !== 1024)
                     throw 'the only sensible value for base apart from 1000 is 1024';
                 break;
@@ -1515,7 +1516,7 @@ RRDGraph.prototype = {
                 break;
             case 'height':
             case 'h':
-                this.ysize = parseInt(value);
+                this.ysize = parseInt(value, 10);
                 break;
             case 'no-minor':
             case 'I':
@@ -1534,7 +1535,7 @@ RRDGraph.prototype = {
                 break;
             case 'units-length':
             case 'L':
-                this.unitslength = parseInt(value);
+                this.unitslength = parseInt(value, 10);
                 this.forceleftspace = true;
                 break;
             case 'lower-limit':
@@ -1584,7 +1585,7 @@ RRDGraph.prototype = {
                 this.rigid = true;
                 break;
             case 'step':
-                this.step = parseInt(value);
+                this.step = parseInt(value, 10);
                 break;
             case 'start':
             case 's':
@@ -1613,13 +1614,13 @@ RRDGraph.prototype = {
                 break;
             case 'width':
             case 'w':
-                this.xsize = parseInt(value);
+                this.xsize = parseInt(value, 10);
                 if (this.xsize < 10)
                     throw "width below 10 pixels";
                 break;
             case 'units-exponent':
             case 'X':
-                this.unitsexponent = parseInt(value);
+                this.unitsexponent = parseInt(value, 10);
                 break;
             case 'x-grid':
             case 'x':
@@ -1632,16 +1633,16 @@ RRDGraph.prototype = {
                     this.xlab_user.gridtm = this.tmt_conv(args[0]);
                     if (this.xlab_user.gridtm < 0)
                         throw "unknown keyword "+args[0];
-                    this.xlab_user.gridst = parseInt(args[1]);
+                    this.xlab_user.gridst = parseInt(args[1], 10);
                     this.xlab_user.mgridtm = this.tmt_conv(args[2]);
                     if (this.xlab_user.mgridtm < 2)
                         throw "unknown keyword "+args[2];
-                    this.xlab_user.mgridst = parseInt(args[3]);
+                    this.xlab_user.mgridst = parseInt(args[3], 10);
                     this.xlab_user.labtm = this.tmt_conv(args[4]);
                     if (this.xlab_user.labtm < 0)
                         throw "unknown keyword "+args[4];
-                    this.xlab_user.labst = parseInt(args[5]);
-                    this.xlab_user.precis = parseInt(args[6]);
+                    this.xlab_user.labst = parseInt(args[5], 10);
+                    this.xlab_user.precis = parseInt(args[6], 10);
                     this.xlab_user.minsec = 1;
                     this.xlab_form = args[7]; // FIXME : ? join(:)
                     this.xlab_user.stst = this.xlab_form;
@@ -1662,7 +1663,7 @@ RRDGraph.prototype = {
                     this.ygridstep = parseFloat(value.substr(0,index));
                     if (this.ygridstep <= 0)
                         throw "grid step must be > 0";
-                    this.ylabfact = parseInt(value.substr(index+1));
+                    this.ylabfact = parseInt(value.substr(index+1), 10);
                     if (this.ylabfact < 1)
                         throw "label factor must be > 0";
                 }
@@ -1722,7 +1723,7 @@ RRDGraph.prototype = {
                 }
                 break;
             case 'border':
-                this.draw_3d_border = parseInt(value);
+                this.draw_3d_border = parseInt(value, 10);
                 break;
             case 'grid-dash':
                 var index = value.indexOf(':');
@@ -1749,9 +1750,9 @@ RRDGraph.prototype = {
         } else if ((bits = /^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/.exec(str))) {
             return [parseInt(bits[1], 16), parseInt(bits[2], 16), parseInt(bits[3], 16), parseInt(bits[4], 16)/255];
         } else if ((bits = /^rgb\((\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\)$/.exec(str))) {
-            return [parseInt(bits[1]), parseInt(bits[2]), parseInt(bits[3]), 1.0];
+            return [parseInt(bits[1], 10), parseInt(bits[2], 10), parseInt(bits[3], 10), 1.0];
         } else if ((bits = /^rgba\((\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*([0-9.]+)\)$/.exec(str))) {
-            return [parseInt(bits[1]), parseInt(bits[2]), parseInt(bits[3]), parseFloat(bits[4])];
+            return [parseInt(bits[1], 10), parseInt(bits[2], 10), parseInt(bits[3], 10), parseFloat(bits[4])];
         } else {
             throw "Unknow color format '"+str+"'";
         }
@@ -4297,7 +4298,7 @@ RRDGraph.prototype = {
             if  (this.gdes[gdp.shidx].gf !== RRDGraphDesc.GF.VDEF)
                 throw "Encountered unknown type variable '"+this.gdes[gdp.shidx].vname+"'";
         } else {
-            gdp.shval = parseInt(offset); // FIXME check
+            gdp.shval = parseInt(offset, 10); // FIXME check
             gdp.shidx = -1;
         }
         gdp.legend = '';
