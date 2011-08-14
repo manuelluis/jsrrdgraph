@@ -21,6 +21,10 @@
 
 "use strict";
 
+
+/**
+ * @constructor
+ */
 var RRDTime = function() {
   this.parser.apply(this, arguments);
 };
@@ -616,8 +620,12 @@ RRDTime.proc_start_end = function(start_t, end_t) {
         end = end_t.mktime() + end_t.offset;
   }
   return [start, end];
-}
+};
 
+
+/**
+ * @constructor
+ */
 var RRDRpn = function() {
     this.parser.apply(this, arguments);
 };
@@ -1150,8 +1158,12 @@ RRDRpn.prototype = {
         output[output_idx] = this.rpnstack[0];
         return 0;
     }
-}
+};
 
+
+/**
+ * @constructor
+ */
 var RRDGraphDesc = function() {
     this.init.apply(this, arguments);
 };
@@ -1235,6 +1247,9 @@ Date.prototype.getWeek = function() {
 }
 
 
+/**
+ * @constructor
+ */
 var RRDGraph = function() {
     this.init.apply(this, arguments);
 };
