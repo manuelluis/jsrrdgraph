@@ -4658,7 +4658,7 @@ RRDGraph.prototype = {
     else if (func === 'LSLINT') gdes.vf.op = RRDGraphDesc.VDEF.LSLINT;
     else if (func === 'LSLCORREL') gdes.vf.op = RRDGraphDesc.VDEF.LSLCORREL;
     else {
-        throw 'Unknown function "'+func+'" in VDEF "'+gdes.vame+'"';
+        throw 'Unknown function "'+func+'" in VDEF "'+gdes.vname+'"';
     }
 
     switch (gdes.vf.op) {
