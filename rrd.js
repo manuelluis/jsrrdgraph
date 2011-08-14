@@ -3020,13 +3020,22 @@ RRDGraph.prototype = {
         this.gfx_close_path();
 
         if (this.second_axis_scale != 0){
-            this.gfx_line (this.xorigin+this.xsize,this.yorigin+4,
-         this.xorigin+this.xsize,this.yorigin-this.ysize-4,
-         MGRIDWIDTH, this.graph_col[GRC_AXIS]);
-            this.gfx_new_area (this.xorigin+this.xsize-2,  this.yorigin-this.ysize-2,
-           this.xorigin+this.xsize+3,  this.yorigin-this.ysize-2,
-         this.xorigin+this.xsize,    this.yorigin-this.ysize-7, /* LINEOFFSET */
-         this.GRC.ARROW);
+            this.gfx_line(
+                this.xorigin+this.xsize,this.yorigin+4,
+                this.xorigin+this.xsize,this.yorigin-this.ysize-4,
+                MGRIDWIDTH,
+                this.GRC_AXIS);
+            // FIXME: this.graph_col does not exist, code was originally...
+            // this.graph_col[GRC_AXIS]);
+
+            this.gfx_new_area(
+                this.xorigin+this.xsize-2,
+                this.yorigin-this.ysize-2,
+                this.xorigin+this.xsize+3,
+                this.yorigin-this.ysize-2,
+                this.xorigin+this.xsize,
+                this.yorigin-this.ysize-7, /* LINEOFFSET */
+                this.GRC.ARROW);
             this.gfx_close_path();
         }
     },
@@ -4443,7 +4452,7 @@ RRDGraph.prototype = {
     parse_textaling: function (line)
     {
         var index = line.indexOf(':');
-        this.create_textaling(line.substr(index+1));
+        this.create_textalign(line.substr(index+1));
     },
     create_textalign: function (align)
     {
