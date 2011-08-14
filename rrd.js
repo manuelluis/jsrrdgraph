@@ -4184,7 +4184,7 @@ RRDGraph.prototype = {
     },
     create_def: function (vname, rrdfile, name, cf, step, start, end, reduce)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
         var start_t = new RRDTime(this.start);
         var end_t = new RRDTime(this.end);
 
@@ -4223,7 +4223,7 @@ RRDGraph.prototype = {
     },
     create_cdef:function (vname, rpn)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.CDEF;
         gdp.vname = vname
         gdp.vidx = this.find_var(vname);
@@ -4241,7 +4241,7 @@ RRDGraph.prototype = {
     },
     create_vdef:function (vname, rpn)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.VDEF;
         gdp.vname = vname
 
@@ -4265,7 +4265,7 @@ RRDGraph.prototype = {
     },
     create_shift: function (vname, offset)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.SHIFT;
         gdp.vname = vname // Â?
         gdp.vidx = this.find_var(vname); // FIXME checks
@@ -4299,7 +4299,7 @@ RRDGraph.prototype = {
     },
     create_line: function (width, value, color, legend, stack)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
 
         gdp.gf = RRDGraphDesc.GF.LINE;
         gdp.vname = value;
@@ -4323,7 +4323,7 @@ RRDGraph.prototype = {
     },
     create_area: function (value, color, legend, stack)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
 
         gdp.gf = RRDGraphDesc.GF.AREA;
         gdp.vname = value;
@@ -4345,7 +4345,7 @@ RRDGraph.prototype = {
     },
     create_tick: function (vname, color, fraction, legend)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.TICK;
         gdp.vname = vname;
         gdp.vidx = this.find_var(vname);
@@ -4384,7 +4384,7 @@ RRDGraph.prototype = {
     },
     create_gprint: function (vname, cf, format, strftime)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.GPRINT;
         gdp.vname = vname;
         gdp.vidx = this.find_var(vname);
@@ -4418,7 +4418,7 @@ RRDGraph.prototype = {
     },
     create_comment: function (text)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.COMMENT;
         gdp.vidx = -1;
         gdp.legend = text;
@@ -4432,7 +4432,7 @@ RRDGraph.prototype = {
     },
     create_textalign: function (align)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.TEXTALIGN;
         gdp.vidx = -1;
         if (align === "left") {
@@ -4456,7 +4456,7 @@ RRDGraph.prototype = {
     },
     create_vrule: function (time, color, legend)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
 
         gdp.gf = RRDGraphDesc.GF.VRULE;
         gdp.xrule = time;
@@ -4473,7 +4473,7 @@ RRDGraph.prototype = {
     },
     create_hrule: function (value, color, legend)
     {
-        var gdp = new	RRDGraphDesc(this);
+        var gdp = new RRDGraphDesc(this);
 
         gdp.gf = RRDGraphDesc.GF.HRULE;
         gdp.yrule = value;
