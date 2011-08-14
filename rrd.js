@@ -3643,8 +3643,9 @@ RRDGraph.prototype = {
                 this.GFX_H.CENTER, this.GFX_V.BOTTOM, this.watermark);
         }
         /* graph labels */
+        var gdes_c;
         if (!(this.no_legend) && !(this.only_graph)) {
-            for (i = 0, var gdes_c = this.gdes.length; i < gdes_c; i++) {
+            for (i = 0, gdes_c = this.gdes.length; i < gdes_c; i++) {
                 if (!this.gdes[i].legend) continue;
                 X0 = this.xOriginLegend + this.gdes[i].leg_x;
                 Y0 = (
