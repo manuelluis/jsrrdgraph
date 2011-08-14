@@ -4571,7 +4571,8 @@ RRDGraph.prototype = {
             gdp.format = format;
         }
     //	if (this.gdes[gdp.vidx].gf === RRDGraphDesc.GF.VDEF && gdp.strftm === true) // FIXME
-        if (this.gdes[gdp.vidx].gf === RRDGraphDesc.GF.VDEF && strtime === true) // FIXME
+        if (this.gdes[gdp.vidx].gf === RRDGraphDesc.GF.VDEF
+            && strftime === true) // FIXME
             gdp.strftm = true;
         this.gdes.push(gdp);
     },
