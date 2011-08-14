@@ -3876,18 +3876,31 @@ RRDGraph.prototype = {
         if (this.logarithmic && this.minval <= 0)
             throw "for a logarithmic yaxis you must specify a lower-limit > 0";
 
-//		var start_end = RRDTime.proc_start_end(this.start_t, this.end_t);
-//		this.start = start_end[0];
-//		this.end = start_end[1];
+        //		var start_end = RRDTime.proc_start_end(this.start_t, this.end_t);
+        //		this.start = start_end[0];
+        //		this.end = start_end[1];
 
         if (this.start < 3600 * 24 * 365 * 10)
-            throw "the first entry to fetch should be after 1980 ("+this.start+"%ld)";
+            throw ("the first entry to fetch should be after 1980 (" +
+                   this.start + "%ld)");
 
         if (this.end < this.start)
-            throw "start ("+this.start+") should be less than end ("+this.end+")";
+            throw ("start (" + this.start + ") should be less than end (" +
+                   this.end + ")");
 
-//	this.xlab_form = null
-        this.xlab_user = { minsec: -1, length: 0, gridtm: 0, gridst: 0, mgridtm: 0, mgridst: 0, labtm: 0, labst: 0, precis: 0, stst: null };
+        //	this.xlab_form = null
+        this.xlab_user = {
+            minsec: -1,
+            length: 0,
+            gridtm: 0,
+            gridst: 0,
+            mgridtm: 0,
+            mgridst: 0,
+            labtm: 0,
+            labst: 0,
+            precis: 0,
+            stst: null
+        };
         this.ygrid_scale = { gridstep: 0.0, labfact:0 , labfmt: null };
         this.minval = this.setminval;
         this.maxval = this.setmaxval;
@@ -3898,19 +3911,19 @@ RRDGraph.prototype = {
             this.gdes[i].step = 0;  // FIXME 0?
             this.gdes[i].step_orig = this.step;
             this.gdes[i].start = this.start; // FIXME SHIFT
-//			this.gdes[i].start_orig = this.start;
+            //			this.gdes[i].start_orig = this.start;
             this.gdes[i].end = this.end; // FIXME SHIFT
-//			this.gdes[i].end_orig = this.end;
+            //			this.gdes[i].end_orig = this.end;
         }
 
-        var areazero = 0.0
+        var areazero = 0.0;
         var lastgdes = null;
 
         if (this.data_fetch() === -1)
             return -1;
         if (this.data_calc() === -1)
             return -1;
-        var i = this.print_calc();
+        i = this.print_calc();
         if (i < 0)
             return -1;
         if (this.graph_size_location(i) === -1)
@@ -3923,7 +3936,8 @@ RRDGraph.prototype = {
         if (!this.rigid && !this.logarithmic)
             this.expand_range();
 
-        if (this.magfact === 0) this.magfact =1; // FIXME XXX XXX  logarithmic Â?
+        // FIXME XXX XXX  logarithmic Â?
+        if (this.magfact === 0) this.magfact =1;
 
         if (!this.calc_horizontal_grid())
             return -1;
@@ -3933,238 +3947,314 @@ RRDGraph.prototype = {
         this.canvas.height = this.yimg;
         this.canvas.width = this.ximg;
 
-        this.gfx_new_area(0, 0, 0, this.yimg, this.ximg, this.yimg, this.GRC.BACK);
+        this.gfx_new_area(
+            0, 0, 0, this.yimg, this.ximg, this.yimg, this.GRC.BACK);
         this.gfx_add_point(this.ximg, 0);
         this.gfx_close_path();
 
-        this.gfx_new_area(this.xorigin, this.yorigin, this.xorigin + this.xsize,
-            this.yorigin, this.xorigin + this.xsize, this.yorigin - this.ysize, this.GRC.CANVAS);
+        this.gfx_new_area(
+            this.xorigin,
+            this.yorigin,
+            this.xorigin + this.xsize,
+            this.yorigin,
+            this.xorigin + this.xsize,
+            this.yorigin - this.ysize,
+            this.GRC.CANVAS);
         this.gfx_add_point(this.xorigin, this.yorigin - this.ysize);
         this.gfx_close_path();
 
-//	this.ctx.rect(this.xorigin, this.yorigin - this.ysize - 1.0, this.xsize, this.ysize + 2.0);
-//      this.ctx.clip();
+        //	this.ctx.rect(this.xorigin, this.yorigin - this.ysize - 1.0, this.xsize, this.ysize + 2.0);
+        //      this.ctx.clip();
 
         if (this.minval > 0.0) areazero = this.minval;
         if (this.maxval < 0.0) areazero = this.maxval;
 
-        for (var i = 0, gdes_c = this.gdes.length; i < gdes_c; i++) {
+        for (i = 0, gdes_c = this.gdes.length; i < gdes_c; i++) {
             switch (this.gdes[i].gf) {
-                case RRDGraphDesc.GF.CDEF:
-                case RRDGraphDesc.GF.VDEF:
-                case RRDGraphDesc.GF.DEF:
-                case RRDGraphDesc.GF.PRINT:
-                case RRDGraphDesc.GF.GPRINT:
-                case RRDGraphDesc.GF.COMMENT:
-                case RRDGraphDesc.GF.TEXTALIGN:
-                case RRDGraphDesc.GF.HRULE:
-                case RRDGraphDesc.GF.VRULE:
-                case RRDGraphDesc.GF.XPORT:
-                case RRDGraphDesc.GF.SHIFT:
-                    break;
-                case RRDGraphDesc.GF.TICK:
-                    for (var ii = 0; ii < this.xsize; ii++) {
-                        if (!isNaN(this.gdes[i].p_data[ii]) && this.gdes[i].p_data[ii] != 0.0) {
-                            if (this.gdes[i].yrule > 0) {
-                                this.gfx_line(this.xorigin + ii, this.yorigin + 1.0, this.xorigin + ii, this.yorigin - this.gdes[i].yrule * this.ysize, 1.0, this.gdes[i].col);
-                            } else if (this.gdes[i].yrule < 0) {
-                                this.gfx_line(this.xorigin + ii, this.yorigin - this.ysize - 1.0, this.xorigin + ii, this.yorigin - this.ysize - this.gdes[i].yrule * this.ysize, 1.0, this.gdes[i].col);
-                            }
+              case RRDGraphDesc.GF.CDEF:
+              case RRDGraphDesc.GF.VDEF:
+              case RRDGraphDesc.GF.DEF:
+              case RRDGraphDesc.GF.PRINT:
+              case RRDGraphDesc.GF.GPRINT:
+              case RRDGraphDesc.GF.COMMENT:
+              case RRDGraphDesc.GF.TEXTALIGN:
+              case RRDGraphDesc.GF.HRULE:
+              case RRDGraphDesc.GF.VRULE:
+              case RRDGraphDesc.GF.XPORT:
+              case RRDGraphDesc.GF.SHIFT:
+                break;
+              case RRDGraphDesc.GF.TICK:
+                for (var ii = 0; ii < this.xsize; ii++) {
+                    if (!isNaN(this.gdes[i].p_data[ii])
+                        && this.gdes[i].p_data[ii] != 0.0) {
+                        if (this.gdes[i].yrule > 0) {
+                            this.gfx_line(
+                                this.xorigin + ii,
+                                this.yorigin + 1.0,
+                                this.xorigin + ii,
+                                (this.yorigin - this.gdes[i].yrule *
+                                 this.ysize),
+                                1.0,
+                                this.gdes[i].col);
+                        } else if (this.gdes[i].yrule < 0) {
+                            this.gfx_line(
+                                this.xorigin + ii,
+                                this.yorigin - this.ysize - 1.0,
+                                this.xorigin + ii,
+                                (this.yorigin - this.ysize -
+                                 this.gdes[i].yrule * this.ysize),
+                                1.0,
+                                this.gdes[i].col);
                         }
                     }
-                    break;
-                case RRDGraphDesc.GF.LINE:
-                case RRDGraphDesc.GF.AREA:
-            var diffval = this.maxval - this.minval;
-            var maxlimit = this.maxval + 9 * diffval;
-            var minlimit = this.minval - 9 * diffval;
-            for (var ii = 0; ii < this.xsize; ii++) {
-                            if (!isNaN(this.gdes[i].p_data[ii])) { // FIXME NaN < ???
-                                if (!isFinite(this.gdes[i].p_data[ii])) {
-                                    if (this.gdes[i].p_data[ii] > 0) this.gdes[i].p_data[ii] = this.maxval;
-                                    else this.gdes[i].p_data[ii] = this.minval;
-                                }
-                                if (this.gdes[i].p_data[ii] > maxlimit) this.gdes[i].p_data[ii] = maxlimit;
-                                if (this.gdes[i].p_data[ii] < minlimit) this.gdes[i].p_data[ii] = minlimit;
-                            }
-            }
-                        var color = this.parse_color(this.gdes[i].col); // if (this.gdes[i].col.alpha != 0.0) {
-            if (color[3] != 0.0) {
-                            if (this.gdes[i].gf === RRDGraphDesc.GF.LINE) {
-                                var last_y = 0.0;
-                                var draw_on = false;
-
-                                this.ctx.save();
-                                this.ctx.beginPath();
-                                this.ctx.lineWidth = this.gdes[i].linewidth;
-                                //if (this.gdes[i].dash) cairo_set_dash(this.cr, this.gdes[i].p_dashes, this.gdes[i].ndash, this.gdes[i].offset); FIXME
-                                for (var ii = 1; ii < this.xsize; ii++) {
-                                    if (isNaN(this.gdes[i].p_data[ii]) || (this.slopemode && isNaN(this.gdes[i].p_data[ii - 1]))) {
-                                        draw_on = false;
-                                        continue;
-                                    }
-                                    if (!draw_on) {
-                                        last_y = this.ytr(this.gdes[i].p_data[ii]);
-                                        if (!this.slopemode) {
-                                            var x = ii - 1 + this.xorigin;
-                                            var y = last_y;
-                                            x = Math.round(x)+0.5;
-                                            y = Math.round(y)+0.5;
-                                            this.ctx.moveTo(x, y);
-                                            x = ii + this.xorigin;
-                                            y = last_y;
-                                            x = Math.round(x)+0.5;
-                                            y = Math.round(y)+0.5;
-                                            this.ctx.lineTo(x, y)
-                                        } else {
-                                            var x = ii - 1 + this.xorigin;
-                                            var y = this.ytr(this.gdes[i].p_data[ii - 1]);
-                                            x = Math.round(x)+0.5;
-                                            y = Math.round(y)+0.5;
-                                            this.ctx.moveTo(x, y);
-                                            x = ii + this.xorigin;
-                                            y = last_y;
-                                            x = Math.round(x)+0.5;
-                                            y = Math.round(y)+0.5;
-                                            this.ctx.lineTo(x, y);
-                                        }
-                                        draw_on = true;
-                                    } else {
-                                        var x1 = ii + this.xorigin;
-                                        var y1 = this.ytr(this.gdes[i].p_data[ii]);
-
-                                        if (!this.slopemode && !this.AlmostEqual2sComplement(y1, last_y, 4)) {
-                                            var x = ii - 1 + this.xorigin;
-                                            var y = y1;
-
-                                            x = Math.round(x)+0.5;
-                                            y = Math.round(y)+0.5;
-                                            this.ctx.lineTo(x, y);
-                                        }
-                                        last_y = y1;
-                                        x1 = Math.round(x1)+0.5;
-                                        y1 = Math.round(y1)+0.5;
-                                        this.ctx.lineTo(x1, y1);
-                                    }
-                                }
-                                //cairo_set_source_rgba(this.cr, this.gdes[i].  col.red, this.gdes[i].  col.green, this.gdes[i].  col.blue, this.gdes[i].col.alpha);
-                                this.ctx.strokeStyle = this.gdes[i].col;
-                                this.ctx.lineCap = 'round'; //cairo_set_line_cap(this.cr, CAIRO_LINE_CAP_ROUND);
-                                this.ctx.round = 'round'; //cairo_set_line_join(this.cr, CAIRO_LINE_JOIN_ROUND);
-                                this.ctx.stroke();
-                                this.ctx.restore();
+                }
+                break;
+              case RRDGraphDesc.GF.LINE:
+              case RRDGraphDesc.GF.AREA:
+                var diffval = this.maxval - this.minval;
+                var maxlimit = this.maxval + 9 * diffval;
+                var minlimit = this.minval - 9 * diffval;
+                for (ii = 0; ii < this.xsize; ii++) {
+                    if (!isNaN(this.gdes[i].p_data[ii])) { // FIXME NaN < ???
+                        if (!isFinite(this.gdes[i].p_data[ii])) {
+                            if (this.gdes[i].p_data[ii] > 0) {
+                                this.gdes[i].p_data[ii] = this.maxval;
                             } else {
-                                var idxI = -1;
-                                var foreY = [];
-                                var foreX = [];
-                                var backY = [];
-                                var backX = [];
-                                var drawem = false;
-
-                                for (ii = 0; ii <= this.xsize; ii++) {
-                                    var ybase, ytop;
-
-                                    if (idxI > 0 && (drawem || ii === this.xsize)) {
-                                        var cntI = 1;
-                                        var lastI = 0;
-
-                                        while (cntI < idxI && this.AlmostEqual2sComplement(foreY [lastI], foreY[cntI], 4) && this.AlmostEqual2sComplement(foreY [lastI], foreY [cntI + 1], 4))
-                                            cntI++;
-                                            this.gfx_new_area(backX[0], backY[0], foreX[0], foreY[0], foreX[cntI], foreY[cntI], this.gdes[i].col);
-                                            while (cntI < idxI) {
-                                                lastI = cntI;
-                                                cntI++;
-                                                while (cntI < idxI && this.AlmostEqual2sComplement(foreY [lastI], foreY[cntI], 4) && this.AlmostEqual2sComplement(foreY [lastI], foreY [cntI + 1], 4))
-                                                    cntI++;
-                                                this.gfx_add_point(foreX[cntI], foreY[cntI]);
-                                            }
-                                            this.gfx_add_point(backX[idxI], backY[idxI]);
-                                            while (idxI > 1) {
-                                                lastI = idxI;
-                                                idxI--;
-                                                while (idxI > 1 && this.AlmostEqual2sComplement(backY [lastI], backY[idxI], 4) && this.AlmostEqual2sComplement(backY [lastI], backY [idxI - 1], 4))
-                                                    idxI--;
-                                                this.gfx_add_point(backX[idxI], backY[idxI]);
-                                            }
-                                            idxI = -1;
-                                            drawem = false;
-                                            this.gfx_close_path();
-                                        }
-                                        if (drawem) {
-                                            drawem = false;
-                                            idxI = -1;
-                                        }
-                                        if (ii === this.xsize)
-                                            break;
-                                        if (!this.slopemode && ii === 0)
-                                                continue;
-                        if (isNaN(this.gdes[i].p_data[ii])) {
-                            drawem = true;
-                            continue;
+                                this.gdes[i].p_data[ii] = this.minval;
+                            }
                         }
-                        ytop = this.ytr(this.gdes[i].p_data[ii]);
-                        if (lastgdes && this.gdes[i].stack) ybase = this.ytr(lastgdes.p_data[ii]);
-                        else ybase = this.ytr(areazero);
-                        if (ybase === ytop) {
-                            drawem = true;
-                            continue;
+                        if (this.gdes[i].p_data[ii] > maxlimit) {
+                            this.gdes[i].p_data[ii] = maxlimit;
                         }
-
-                        if (ybase > ytop) {
-                            var extra = ytop;
-                            ytop = ybase;
-                            ybase = extra;
+                        if (this.gdes[i].p_data[ii] < minlimit) {
+                            this.gdes[i].p_data[ii] = minlimit;
                         }
-                        if (!this.slopemode) {
-                            backY[++idxI] = ybase - 0.2;
-                            backX[idxI] = ii + this.xorigin - 1;
-                            foreY[idxI] = ytop + 0.2;
-                            foreX[idxI] = ii + this.xorigin - 1;
-                        }
-                        backY[++idxI] = ybase - 0.2;
-                        backX[idxI] = ii + this.xorigin;
-                        foreY[idxI] = ytop + 0.2;
-                        foreX[idxI] = ii + this.xorigin;
                     }
                 }
-            }
-            /* if color != 0x0 */
-            /* make sure we do not run into trouble when stacking on NaN */
-            for (ii = 0; ii < this.xsize; ii++) {
-                if (isNaN(this.gdes[i].p_data[ii])) {
-                    if (lastgdes && (this.gdes[i].stack)) this.gdes[i].p_data[ii] = lastgdes.p_data[ii];
-                    else this.gdes[i].p_data[ii] = areazero;
+                var color = this.parse_color(this.gdes[i].col);
+                // if (this.gdes[i].col.alpha != 0.0) {
+                if (color[3] != 0.0) {
+                    if (this.gdes[i].gf === RRDGraphDesc.GF.LINE) {
+                        var last_y = 0.0;
+                        var draw_on = false;
+
+                        this.ctx.save();
+                        this.ctx.beginPath();
+                        this.ctx.lineWidth = this.gdes[i].linewidth;
+                        //if (this.gdes[i].dash) cairo_set_dash(this.cr, this.gdes[i].p_dashes, this.gdes[i].ndash, this.gdes[i].offset); FIXME
+                        for (ii = 1; ii < this.xsize; ii++) {
+                            if (isNaN(this.gdes[i].p_data[ii])
+                                || (this.slopemode
+                                    && isNaN(this.gdes[i].p_data[ii - 1]))) {
+                                draw_on = false;
+                                continue;
+                            }
+                            if (!draw_on) {
+                                last_y = this.ytr(this.gdes[i].p_data[ii]);
+                                if (!this.slopemode) {
+                                    var x = ii - 1 + this.xorigin;
+                                    var y = last_y;
+                                    x = Math.round(x)+0.5;
+                                    y = Math.round(y)+0.5;
+                                    this.ctx.moveTo(x, y);
+                                    x = ii + this.xorigin;
+                                    y = last_y;
+                                    x = Math.round(x)+0.5;
+                                    y = Math.round(y)+0.5;
+                                    this.ctx.lineTo(x, y);
+                                } else {
+                                    var x = ii - 1 + this.xorigin;
+                                    var y = this.ytr(
+                                        this.gdes[i].p_data[ii - 1]);
+                                    x = Math.round(x)+0.5;
+                                    y = Math.round(y)+0.5;
+                                    this.ctx.moveTo(x, y);
+                                    x = ii + this.xorigin;
+                                    y = last_y;
+                                    x = Math.round(x)+0.5;
+                                    y = Math.round(y)+0.5;
+                                    this.ctx.lineTo(x, y);
+                                }
+                                draw_on = true;
+                            } else {
+                                var x1 = ii + this.xorigin;
+                                var y1 = this.ytr(this.gdes[i].p_data[ii]);
+
+                                if (!this.slopemode
+                                    && !this.AlmostEqual2sComplement(
+                                        y1, last_y, 4)) {
+                                    var x = ii - 1 + this.xorigin;
+                                    var y = y1;
+
+                                    x = Math.round(x)+0.5;
+                                    y = Math.round(y)+0.5;
+                                    this.ctx.lineTo(x, y);
+                                }
+                                last_y = y1;
+                                x1 = Math.round(x1)+0.5;
+                                y1 = Math.round(y1)+0.5;
+                                this.ctx.lineTo(x1, y1);
+                            }
+                        }
+                        //cairo_set_source_rgba(this.cr, this.gdes[i].  col.red, this.gdes[i].  col.green, this.gdes[i].  col.blue, this.gdes[i].col.alpha);
+                        this.ctx.strokeStyle = this.gdes[i].col;
+                        this.ctx.lineCap = 'round'; //cairo_set_line_cap(this.cr, CAIRO_LINE_CAP_ROUND);
+                        this.ctx.round = 'round'; //cairo_set_line_join(this.cr, CAIRO_LINE_JOIN_ROUND);
+                        this.ctx.stroke();
+                        this.ctx.restore();
+                    } else {
+                        var idxI = -1;
+                        var foreY = [];
+                        var foreX = [];
+                        var backY = [];
+                        var backX = [];
+                        var drawem = false;
+
+                        for (ii = 0; ii <= this.xsize; ii++) {
+                            var ybase, ytop;
+
+                            if (idxI > 0 && (drawem || ii === this.xsize)) {
+                                var cntI = 1;
+                                var lastI = 0;
+
+                                while (cntI < idxI
+                                       && this.AlmostEqual2sComplement(
+                                           foreY [lastI], foreY[cntI], 4)
+                                       && this.AlmostEqual2sComplement(
+                                           foreY [lastI], foreY [cntI + 1], 4))
+                                    cntI++;
+                                this.gfx_new_area(
+                                    backX[0], backY[0],
+                                    foreX[0], foreY[0],
+                                    foreX[cntI], foreY[cntI],
+                                    this.gdes[i].col);
+
+                                while (cntI < idxI) {
+                                    lastI = cntI;
+                                    cntI++;
+                                    while (cntI < idxI
+                                           && this.AlmostEqual2sComplement(
+                                               foreY[lastI], foreY[cntI], 4)
+                                           && this.AlmostEqual2sComplement(
+                                               foreY[lastI], foreY[cntI + 1],
+                                               4))
+                                        cntI++;
+                                    this.gfx_add_point(
+                                        foreX[cntI], foreY[cntI]);
+                                }
+                                this.gfx_add_point(backX[idxI], backY[idxI]);
+                                while (idxI > 1) {
+                                    lastI = idxI;
+                                    idxI--;
+                                    while (idxI > 1
+                                           && this.AlmostEqual2sComplement(
+                                               backY [lastI], backY[idxI], 4)
+                                           && this.AlmostEqual2sComplement(
+                                               backY [lastI], backY [idxI - 1],
+                                               4))
+                                        idxI--;
+                                    this.gfx_add_point(
+                                        backX[idxI], backY[idxI]);
+                                }
+                                idxI = -1;
+                                drawem = false;
+                                this.gfx_close_path();
+                            }
+                            if (drawem) {
+                                drawem = false;
+                                idxI = -1;
+                            }
+                            if (ii === this.xsize)
+                                break;
+                            if (!this.slopemode && ii === 0)
+                                continue;
+                            if (isNaN(this.gdes[i].p_data[ii])) {
+                                drawem = true;
+                                continue;
+                            }
+                            ytop = this.ytr(this.gdes[i].p_data[ii]);
+                            if (lastgdes && this.gdes[i].stack) {
+                                ybase = this.ytr(lastgdes.p_data[ii]);
+                            } else {
+                                ybase = this.ytr(areazero);
+                            }
+                            if (ybase === ytop) {
+                                drawem = true;
+                                continue;
+                            }
+
+                            if (ybase > ytop) {
+                                var extra = ytop;
+                                ytop = ybase;
+                                ybase = extra;
+                            }
+                            if (!this.slopemode) {
+                                backY[++idxI] = ybase - 0.2;
+                                backX[idxI] = ii + this.xorigin - 1;
+                                foreY[idxI] = ytop + 0.2;
+                                foreX[idxI] = ii + this.xorigin - 1;
+                            }
+                            backY[++idxI] = ybase - 0.2;
+                            backX[idxI] = ii + this.xorigin;
+                            foreY[idxI] = ytop + 0.2;
+                            foreX[idxI] = ii + this.xorigin;
+                        }
+                    }
                 }
+                /* if color != 0x0 */
+                /* make sure we do not run into trouble when stacking on NaN */
+                for (ii = 0; ii < this.xsize; ii++) {
+                    if (isNaN(this.gdes[i].p_data[ii])) {
+                        if (lastgdes && (this.gdes[i].stack)) {
+                            this.gdes[i].p_data[ii] = lastgdes.p_data[ii];
+                        } else {
+                            this.gdes[i].p_data[ii] = areazero;
+                        }
+                    }
+                }
+                lastgdes = this.gdes[i]; //lastgdes = &(this.gdes[i]);
+                break;
+              case RRDGraphDesc.GF.STACK:
+                throw "STACK should already be turned into LINE or AREA here";
+                break;
             }
-            lastgdes = this.gdes[i]; //lastgdes = &(this.gdes[i]);
-            break;
-        case RRDGraphDesc.GF.STACK:
-            throw "STACK should already be turned into LINE or AREA here";
-            break;
-            }
-    }
-//      cairo_reset_clip(this.cr);
+        }
+        //      cairo_reset_clip(this.cr);
         if (!this.only_graph)
             this.grid_paint();
         if (!this.only_graph)
             this.axis_paint();
         /* the RULES are the last thing to paint ... */
-        for (var i = 0, gdes_c = this.gdes.length; i < gdes_c; i++) {
+        for (i = 0, gdes_c = this.gdes.length; i < gdes_c; i++) {
             switch (this.gdes[i].gf) {
-                case RRDGraphDesc.GF.HRULE:
-                    if (this.gdes[i].yrule >= this.minval && this.gdes[i].yrule <= this.maxval) {
-                        //if (this.gdes[i].dash) cairo_set_dash(this.cr, this.gdes[i].p_dashes, this.gdes[i].ndash, this.gdes[i].offset);
-                        this.gfx_line(this.xorigin, this.ytr(this.gdes[i].yrule), this.xorigin + this.xsize, this.ytr(this.gdes[i].yrule), 1.0, this.gdes[i].col);
-                    }
-                    break;
-                case RRDGraphDesc.GF.VRULE:
-                    if (this.gdes[i].xrule >= this.start && this.gdes[i].xrule <= this.end) {
+              case RRDGraphDesc.GF.HRULE:
+                if (this.gdes[i].yrule >= this.minval
+                    && this.gdes[i].yrule <= this.maxval) {
                     //if (this.gdes[i].dash) cairo_set_dash(this.cr, this.gdes[i].p_dashes, this.gdes[i].ndash, this.gdes[i].offset);
-            this.gfx_line(this.xtr(this.gdes[i].xrule), this.yorigin, this.xtr(this.gdes[i].xrule), this.yorigin - this.ysize, 1.0, this.gdes[i].col);
-          }
-          break;
-        default:
-          break;
+                    this.gfx_line(
+                        this.xorigin,
+                        this.ytr(this.gdes[i].yrule),
+                        this.xorigin + this.xsize,
+                        this.ytr(this.gdes[i].yrule),
+                        1.0,
+                        this.gdes[i].col);
+                }
+                break;
+              case RRDGraphDesc.GF.VRULE:
+                if (this.gdes[i].xrule >= this.start
+                    && this.gdes[i].xrule <= this.end) {
+                    //if (this.gdes[i].dash) cairo_set_dash(this.cr, this.gdes[i].p_dashes, this.gdes[i].ndash, this.gdes[i].offset);
+                    this.gfx_line(
+                        this.xtr(this.gdes[i].xrule),
+                        this.yorigin,
+                        this.xtr(this.gdes[i].xrule),
+                        this.yorigin - this.ysize,
+                        1.0,
+                        this.gdes[i].col);
+                }
+                break;
+            default:
+                break;
             }
         }
         return 0;
