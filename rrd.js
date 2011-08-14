@@ -24,7 +24,6 @@
 
 /**
  * @constructor
- * @param {string} tspec
  */
 var RRDTime = function(tspec) {
   this.parser(tspec);
@@ -627,8 +626,8 @@ RRDTime.proc_start_end = function(start_t, end_t) {
 /**
  * @constructor
  */
-var RRDRpn = function() {
-    this.parser.apply(this, arguments);
+var RRDRpn = function(str_expr, gdes) {
+    this.parser(str_expr, gdes);
 };
 
 RRDRpn.OP = { NUMBER: 0, VARIABLE: 1, INF: 2, PREV: 3, NEGINF: 4,
@@ -1165,8 +1164,8 @@ RRDRpn.prototype = {
 /**
  * @constructor
  */
-var RRDGraphDesc = function() {
-    this.init.apply(this, arguments);
+var RRDGraphDesc = function(graph) {
+    this.init(graph);
 };
 
 RRDGraphDesc.GF = {PRINT: 0, GPRINT: 1, COMMENT: 2, HRULE: 3, VRULE: 4, LINE: 5, AREA:6, STACK:7, TICK:8, TEXTALIGN:9, DEF:10, CDEF:11, VDEF:12, SHIFT: 13, XPORT: 14 };
