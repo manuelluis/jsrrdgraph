@@ -587,7 +587,7 @@ RRDTime.prototype = {
         var date = new Date(this.tm_year+1900, this.tm_mon, this.tm_mday, this.tm_hour, this.tm_min, this.tm_sec);
         return Math.round(date.getTime()/1000.0);
     }
-}
+};
 
 RRDTime.proc_start_end = function(start_t, end_t) {
     var start, end;
@@ -1077,7 +1077,7 @@ RRDRpn.prototype = {
                         for(var i=0;i<=locstep;i++) {
                             var offset=shiftstep+i;
                             if ((offset>=0)&&(offset<output_idx)) {
-                                val =this.rpnp[rpi - 1].data[-dscount * offset];
+                                val = this.rpnp[rpi - 1].data[-dscount * offset];
                                 if (! isNaN(val)) {
                                     sum+=val;
                                     sum2+=val*val;
@@ -3644,7 +3644,7 @@ RRDGraph.prototype = {
         }
         /* graph labels */
         if (!(this.no_legend) && !(this.only_graph)) {
-            for (i = 0 , gdes_c = this.gdes.length; i < gdes_c; i++) {
+            for (i = 0, var gdes_c = this.gdes.length; i < gdes_c; i++) {
                 if (!this.gdes[i].legend) continue;
                 X0 = this.xOriginLegend + this.gdes[i].leg_x;
                 Y0 = (
@@ -4340,12 +4340,12 @@ RRDGraph.prototype = {
             for (var j = n, xlen = args.length ; j < xlen ; j++) {
                 var opts = args[j].split("=");
                 if (opts[0] === "step") step = opts[1];
-                if (opts[0] === "reduce") reduce = opts[1]
+                if (opts[0] === "reduce") reduce = opts[1];
                 if (opts[0] === "start") start = opts[1];
                 if (opts[0] === "end") end = opts[1];
             }
         }
-        this.create_def(vname, rrdfile, name, cf, step, start, end, reduce)
+        this.create_def(vname, rrdfile, name, cf, step, start, end, reduce);
     },
     create_def: function (vname, rrdfile, name, cf, step, start, end, reduce)
     {
@@ -4354,7 +4354,7 @@ RRDGraph.prototype = {
         var end_t = new RRDTime(this.end);
 
         gdp.gf = RRDGraphDesc.GF.DEF;
-        gdp.vname = vname
+        gdp.vname = vname;
         gdp.vidx = this.find_var(vname);
         gdp.rrd = rrdfile;
         gdp.ds_nam = name;
@@ -4390,7 +4390,7 @@ RRDGraph.prototype = {
     {
         var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.CDEF;
-        gdp.vname = vname
+        gdp.vname = vname;
         gdp.vidx = this.find_var(vname);
 
         gdp.rpnp = new RRDRpn(rpn,this.gdes);
@@ -4408,7 +4408,7 @@ RRDGraph.prototype = {
     {
         var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.VDEF;
-        gdp.vname = vname
+        gdp.vname = vname;
 
         var index = rpn.indexOf(',');
         var name = rpn.substring(0,index);
@@ -4432,7 +4432,7 @@ RRDGraph.prototype = {
     {
         var gdp = new RRDGraphDesc(this);
         gdp.gf = RRDGraphDesc.GF.SHIFT;
-        gdp.vname = vname // Â?
+        gdp.vname = vname; // Â?
         gdp.vidx = this.find_var(vname); // FIXME checks
 
         if (this.gdes[gdp.vidx].gf === RRDGraphDesc.GF.VDEF)
@@ -4991,7 +4991,7 @@ RRDGraph.prototype = {
             if (this.cf_conv(rra.getCFName()) === cf_idx) {
                 cal_end = (rrd.getLastUpdate() - (rrd.getLastUpdate() % (rra.getPdpPerRow() * rra.pdp_step)));
                 cal_start = (cal_end - (rra.getPdpPerRow() * rra.row_cnt * rra.pdp_step));
-                full_match = gdp.end - gdp.start
+                full_match = gdp.end - gdp.start;
 
                 tmp_step_diff = Math.abs(ft_step - (rrd.getMinStep() * rra.pdp_cnt));
                 if (cal_start <= gdp.start) {
@@ -5049,4 +5049,4 @@ RRDGraph.prototype = {
         }
         return ft_step;
     }
-}
+};
