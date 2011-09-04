@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>RRD Canvas</title>
+		<script type="text/javascript" src="../js/sprintf.js"></script>
+		<script type="text/javascript" src="../js/strftime.js"></script>
+		<script type="text/javascript" src="../js/RrdRpn.js"></script>
+		<script type="text/javascript" src="../js/RrdTime.js"></script>
+		<script type="text/javascript" src="../js/RrdGraph.js"></script>
+		<script type="text/javascript" src="../js/RrdGfxCanvas.js"></script>
+		<script type="text/javascript" src="../js/RrdCmdLine.js"></script>
+		<script type="application/x-javascript">
+
+			var RrdData = function() {};
+			RrdData.prototype.fetch = function(gdp, ft_step) {  
+				var cf_idx = gdp.cf;
+				gdp.ds_namv = ["x1", "x2", "x3"];
+				gdp.ds_cnt = gdp.ds_namv.length;
+				ft_step = 1;
+				var start_offset = (gdp.start + ft_step) / ft_step;
+				var end_offset = (gdp.end) / ft_step;
+				var data_ptr = 0;
+				for (x = start_offset; x <end_offset; x++) {
+					var y = 0;
+					var sx=x/250;
+  				for (var i = 1; i < 20; i+=2) y += Math.sin(i * sx)/i;
+					gdp.data[data_ptr++] = 4/Math.PI * y;
+					gdp.data[data_ptr++] = 1 - 2*(Math.abs(Math.floor(sx / Math.PI)) % 2);
+					gdp.data[data_ptr++] = Math.sin(sx*20)/6+Math.sin(sx);
+				}
+				return ft_step;
+			}
+			function draw() {
+				var cmdline = document.getElementById("cmdline").value;
+				var gfx = new RrdGfxCanvas("canvas");
+				var fetch = new RrdData();
+				var rrdcmdline = null;
+
+				var start = new Date();
+				try {
+					rrdcmdline = new RrdCmdLine(gfx, fetch, cmdline);
+				} catch (e) {
+					alert(e+"***\n"+e.stack);
+				}
+				var end = new Date();
+				document.getElementById("parse").innerHTML = 'Parse time: '+(end.getTime()-start.getTime())+"ms";
+
+				var start = new Date();
+				try {
+					rrdcmdline.graph.graph_paint();
+				} catch (e) {
+					alert(e+"++\n"+e.stack);
+				}
+				var end = new Date();
+				document.getElementById("draw").innerHTML = 'Draw time: '+(end.getTime()-start.getTime())+"ms";
+			}
+		</script>
+	</head>
+	<body>
+		<textarea id="cmdline" rows="10" cols="120">-s end-1h -e now -w 600 -h 120 -v "f(x)" -t function -E
+DEF:fx1=data:x1:AVERAGE
+DEF:fx2=data:x2:AVERAGE
+DEF:fx3=data:x3:AVERAGE
+"LINE1:fx1#00E000: x1"
+"LINE1:fx2#E00000: x2"
+"LINE1:fx3#0000E0: x3"
+</textarea>
+		<br>
+		<button name="submit" onclick="javascript:draw()" >draw</button>
+		<br>
+		<canvas id="canvas"></canvas>
+		<p id="parse"></p>
+		<p id="draw"></p>
+	</body>
+</html>

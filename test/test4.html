@@ -1,0 +1,384 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>RRD Canvas</title>
+    <script type="text/javascript" src="../js/sprintf.js"></script>
+    <script type="text/javascript" src="../js/strftime.js"></script>
+    <script type="text/javascript" src="../js/RrdRpn.js"></script>
+    <script type="text/javascript" src="../js/RrdTime.js"></script>
+    <script type="text/javascript" src="../js/RrdGraph.js"></script>
+    <script type="text/javascript" src="../js/RrdGfxCanvas.js"></script>
+    <script type="text/javascript" src="../js/RrdGfxSvg.js"></script>
+		<script type="text/javascript" src="../js/base64.js"></script>
+    <script type="text/javascript" src="../js/RrdGfxPdf.js"></script>
+    <script type="text/javascript" src="../js/binaryXHR.js"></script>
+    <script type="text/javascript" src="../js/rrdFile.js"></script>
+    <script type="text/javascript" src="../js/RrdDataFile.js"></script>
+    <script type="text/javascript" src="../js/RrdCmdLine.js"></script>
+    <script type="text/javascript" src="../js/RrdJson.js"></script>
+	</head>
+	<body>
+		<div style="float: left">
+			<select id="select" onchange="javascript:select_example()"></select>
+			<button name="submit" onclick="javascript:draw('canvas')" >draw canvas</button>
+			<button name="submit" onclick="javascript:draw('svg')" >draw svg</button>
+			<button name="submit" onclick="javascript:draw('pdf')" >draw pdf</button>
+			<br>
+			<textarea id="cmdline" rows="25" cols="80"></textarea>
+		</div>
+		<div style="float: right">
+			<button name="submit" onclick="javascript:toJSON()" >convert cmdline to JSON</button>
+			<input id="full" type="checkbox" name="full" value="1"> full
+			<button name="submit" onclick="javascript:drawjson('canvas')" >draw canvas</button>
+			<button name="submit" onclick="javascript:drawjson('svg')" >draw svg</button>
+			<br>
+			<textarea id="json" rows="25" cols="80"></textarea>
+		</div>
+		<br>
+		<canvas id="canvas"></canvas>
+		<br>
+		<svg id="svg" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
+		<br>
+		<span id="parse"></span>
+		<br>
+		<span id="draw"></span>
+		<script type="application/x-javascript">
+			function select_example()
+			{		
+				var select = document.getElementById('select');
+				if (select.selectedIndex === 0) {
+					document.getElementById("cmdline").value = '';
+				} else {
+					var option = select.options[select.selectedIndex].text;
+					document.getElementById("cmdline").value = examples[option].join("\n");
+				}
+			}
+			function toJSON()
+			{
+				var cmdline = document.getElementById("cmdline").value;
+				try {
+					var gfx = new RrdGfxCanvas('canvas');
+					var fetch = new RrdDataFile();
+
+					var start = new Date();
+					var rrdcmdline = new RrdCmdLine(gfx, fetch, cmdline);
+
+					var json = new RrdJson(rrdcmdline.graph);
+					json.dump(document.getElementById("full").checked)
+			
+					var str = JSON.stringify(json.json, null, 3);
+					
+					document.getElementById("json").value = str;
+				} catch (e) {
+					alert(e+"\n"+e.stack);
+				}
+			}
+			function drawjson(gfxname) 
+			{
+				var jsonstr = document.getElementById("json").value;
+
+				try {
+					var gfx = null;
+					switch (gfxname) {
+						case 'canvas':
+							gfx = new RrdGfxCanvas('canvas');
+							break;
+						case 'svg':
+							gfx = new RrdGfxSvg('svg');
+							break;
+						case 'pdf':
+							gfx = new RrdGfxPdf('L');
+							break;
+					}
+					var fetch = new RrdDataFile();
+
+					var start = new Date();
+					var json = new RrdJson(gfx, fetch, jsonstr);
+					json.parse();
+					var end = new Date();
+					document.getElementById("parse").innerHTML = 'Parse time: '+(end.getTime()-start.getTime())+"ms";
+
+					var start = new Date();
+					json.graph.graph_paint();
+					var end = new Date();
+					document.getElementById("draw").innerHTML = 'Draw time: '+(end.getTime()-start.getTime())+"ms";
+
+					if (gfxname === 'pdf') gfx.output();
+				} catch (e) {
+					alert(e+"\n"+e.stack);
+				}
+			}
+			function draw(gfxname) 
+			{
+				var cmdline = document.getElementById("cmdline").value;
+
+				try {
+					var gfx = null;
+					switch (gfxname) {
+						case 'canvas':
+							gfx = new RrdGfxCanvas('canvas');
+							break;
+						case 'svg':
+							gfx = new RrdGfxSvg('svg');
+							break;
+						case 'pdf':
+							gfx = new RrdGfxPdf('L');
+							break;
+					}
+					var fetch = new RrdDataFile();
+
+					var start = new Date();
+					var rrdcmdline = new RrdCmdLine(gfx, fetch, cmdline);
+					var end = new Date();
+					document.getElementById("parse").innerHTML = 'Parse time: '+(end.getTime()-start.getTime())+"ms";
+
+					var start = new Date();
+					rrdcmdline.graph.graph_paint();
+					var end = new Date();
+					document.getElementById("draw").innerHTML = 'Draw time: '+(end.getTime()-start.getTime())+"ms";
+
+					if (gfxname === 'pdf') gfx.output();
+				} catch (e) {
+					alert(e+"\n"+e.stack);
+				}
+			}
+			var examples = {
+				load: [
+					'-s end-1h',
+					'-e 1305798665',
+					'-w 600',
+					'-h 120',
+					'-v "System load"',
+					'-t Load',
+					'-E',
+					'DEF:s_avg=data/load.rrd:shortterm:AVERAGE',
+					'DEF:s_min=data/load.rrd:shortterm:MIN',
+					'DEF:s_max=data/load.rrd:shortterm:MAX',
+					'DEF:m_avg=data/load.rrd:midterm:AVERAGE',
+					'DEF:m_min=data/load.rrd:midterm:MIN',
+					'DEF:m_max=data/load.rrd:midterm:MAX',
+					'DEF:l_avg=data/load.rrd:longterm:AVERAGE',
+					'DEF:l_min=data/load.rrd:longterm:MIN',
+					'DEF:l_max=data/load.rrd:longterm:MAX',
+					'AREA:s_max#B7EFB7',
+					'AREA:s_min#FFFFFF',
+					'"LINE1:s_avg#00E000: 1m average"',
+					'"GPRINT:s_min:MIN:%4.2lf Min,"',
+					'"GPRINT:s_avg:AVERAGE:%4.2lf Avg,"',
+					'"GPRINT:s_max:MAX:%4.2lf Max,"',
+					'"GPRINT:s_avg:LAST:%4.2lf Last\\n"',
+					'"LINE1:m_avg#0000FF: 5m average"',
+					'"GPRINT:m_min:MIN:%4.2lf Min,"',
+					'"GPRINT:m_avg:AVERAGE:%4.2lf Avg,"',
+					'"GPRINT:m_max:MAX:%4.2lf Max,"',
+					'"GPRINT:m_avg:LAST:%4.2lf Last\\n"',
+					'"LINE1:l_avg#FF0000:15m average"',
+					'"GPRINT:l_min:MIN:%4.2lf Min,"',
+					'"GPRINT:l_avg:AVERAGE:%4.2lf Avg,"',
+					'"GPRINT:l_max:MAX:%4.2lf Max,"',
+					'"GPRINT:l_avg:LAST:%4.2lf Last\\n"'],
+				cpu: [
+					'-s end-1h',
+					'-e 1303382682',
+					'-w 600' ,
+					'-h 120' ,
+					'-t cpu' ,
+					'-v Percent' ,
+					'-E' ,
+					'-r' ,
+					'-u 100' ,
+					'DEF:idle_min=data/cpu-idle.rrd:value:MIN' ,
+					'DEF:idle_avg=data/cpu-idle.rrd:value:AVERAGE' ,
+					'DEF:idle_max=data/cpu-idle.rrd:value:MAX' ,
+					'CDEF:idle_nnl=idle_avg,UN,0,idle_avg,IF' ,
+					'DEF:wait_min=data/cpu-wait.rrd:value:MIN' ,
+					'DEF:wait_avg=data/cpu-wait.rrd:value:AVERAGE' ,
+					'DEF:wait_max=data/cpu-wait.rrd:value:MAX' ,
+					'CDEF:wait_nnl=wait_avg,UN,0,wait_avg,IF' ,
+					'DEF:nice_min=data/cpu-nice.rrd:value:MIN' ,
+					'DEF:nice_avg=data/cpu-nice.rrd:value:AVERAGE' ,
+					'DEF:nice_max=data/cpu-nice.rrd:value:MAX' ,
+					'CDEF:nice_nnl=nice_avg,UN,0,nice_avg,IF' ,
+					'DEF:user_min=data/cpu-user.rrd:value:MIN' ,
+					'DEF:user_avg=data/cpu-user.rrd:value:AVERAGE' ,
+					'DEF:user_max=data/cpu-user.rrd:value:MAX' ,
+					'CDEF:user_nnl=user_avg,UN,0,user_avg,IF' ,
+					'DEF:system_min=data/cpu-system.rrd:value:MIN' ,
+					'DEF:system_avg=data/cpu-system.rrd:value:AVERAGE' ,
+					'DEF:system_max=data/cpu-system.rrd:value:MAX' ,
+					'CDEF:system_nnl=system_avg,UN,0,system_avg,IF' ,
+					'DEF:softirq_min=data/cpu-softirq.rrd:value:MIN' ,
+					'DEF:softirq_avg=data/cpu-softirq.rrd:value:AVERAGE' ,
+					'DEF:softirq_max=data/cpu-softirq.rrd:value:MAX' ,
+					'CDEF:softirq_nnl=softirq_avg,UN,0,softirq_avg,IF' ,
+					'DEF:interrupt_min=data/cpu-interrupt.rrd:value:MIN' ,
+					'DEF:interrupt_avg=data/cpu-interrupt.rrd:value:AVERAGE' ,
+					'DEF:interrupt_max=data/cpu-interrupt.rrd:value:MAX' ,
+					'CDEF:interrupt_nnl=interrupt_avg,UN,0,interrupt_avg,IF' ,
+					'DEF:steal_min=data/cpu-steal.rrd:value:MIN' ,
+					'DEF:steal_avg=data/cpu-steal.rrd:value:AVERAGE' ,
+					'DEF:steal_max=data/cpu-steal.rrd:value:MAX' ,
+					'CDEF:steal_nnl=steal_avg,UN,0,steal_avg,IF' ,
+					'CDEF:steal_stk=steal_nnl' ,
+					'CDEF:interrupt_stk=interrupt_nnl,steal_stk,+' ,
+					'CDEF:softirq_stk=softirq_nnl,interrupt_stk,+' ,
+					'CDEF:system_stk=system_nnl,softirq_stk,+' ,
+					'CDEF:user_stk=user_nnl,system_stk,+' ,
+					'CDEF:nice_stk=nice_nnl,user_stk,+' ,
+					'CDEF:wait_stk=wait_nnl,nice_stk,+' ,
+					'CDEF:idle_stk=idle_nnl,wait_stk,+' ,
+					'AREA:idle_stk#ffffff' ,
+					'"LINE1:idle_stk#ffffff:idle     "' ,
+					'"GPRINT:idle_min:MIN:%6.1lf Min,"' ,
+					'"GPRINT:idle_avg:AVERAGE:%6.1lf Avg,"' ,
+					'"GPRINT:idle_max:MAX:%6.1lf Max,"' ,
+					'"GPRINT:idle_avg:LAST:%6.1lf Last\\l"' ,
+					'AREA:wait_stk#ffebbf' ,
+					'"LINE1:wait_stk#ffb000:wait     "' ,
+					'"GPRINT:wait_min:MIN:%6.1lf Min,"' ,
+					'"GPRINT:wait_avg:AVERAGE:%6.1lf Avg,"' ,
+					'"GPRINT:wait_max:MAX:%6.1lf Max,"' ,
+					'"GPRINT:wait_avg:LAST:%6.1lf Last\\l"' ,
+					'AREA:nice_stk#bff7bf' ,
+					'"LINE1:nice_stk#00e000:nice     "' ,
+					'"GPRINT:nice_min:MIN:%6.1lf Min,"' ,
+					'"GPRINT:nice_avg:AVERAGE:%6.1lf Avg,"' ,
+					'"GPRINT:nice_max:MAX:%6.1lf Max,"' ,
+					'"GPRINT:nice_avg:LAST:%6.1lf Last\\l"' ,
+					'AREA:user_stk#bfbfff' ,
+					'"LINE1:user_stk#0000ff:user     "' ,
+					'"GPRINT:user_min:MIN:%6.1lf Min,"' ,
+					'"GPRINT:user_avg:AVERAGE:%6.1lf Avg,"' ,
+					'"GPRINT:user_max:MAX:%6.1lf Max,"' ,
+					'"GPRINT:user_avg:LAST:%6.1lf Last\\l"' ,
+					'AREA:system_stk#ffbfbf' ,
+					'"LINE1:system_stk#ff0000:system   "' ,
+					'"GPRINT:system_min:MIN:%6.1lf Min,"' ,
+					'"GPRINT:system_avg:AVERAGE:%6.1lf Avg,"' ,
+					'"GPRINT:system_max:MAX:%6.1lf Max,"' ,
+					'"GPRINT:system_avg:LAST:%6.1lf Last\\l"' ,
+					'AREA:softirq_stk#ffbfff' ,
+					'"LINE1:softirq_stk#ff00ff:softirq  "' ,
+					'"GPRINT:softirq_min:MIN:%6.1lf Min,"' ,
+					'"GPRINT:softirq_avg:AVERAGE:%6.1lf Avg,"' ,
+					'"GPRINT:softirq_max:MAX:%6.1lf Max,"' ,
+					'"GPRINT:softirq_avg:LAST:%6.1lf Last\\l"' ,
+					'AREA:interrupt_stk#e7bfe7' ,
+					'"LINE1:interrupt_stk#a000a0:interrupt"' ,
+					'"GPRINT:interrupt_min:MIN:%6.1lf Min,"' ,
+					'"GPRINT:interrupt_avg:AVERAGE:%6.1lf Avg,"' ,
+					'"GPRINT:interrupt_max:MAX:%6.1lf Max,"' ,
+					'"GPRINT:interrupt_avg:LAST:%6.1lf Last\\l"' ,
+					'AREA:steal_stk#bfbfbf' ,
+					'"LINE1:steal_stk#000000:steal    "' ,
+					'"GPRINT:steal_min:MIN:%6.1lf Min,"' ,
+					'"GPRINT:steal_avg:AVERAGE:%6.1lf Avg,"' ,
+					'"GPRINT:steal_max:MAX:%6.1lf Max,"' ,
+					'"GPRINT:steal_avg:LAST:%6.1lf Last\\l"'],
+				memory: [
+					'-s end-1h',
+					'-e 1303382682',
+					'-w 600',
+					'-h 120',
+					'-t memory' ,
+					'-E' ,
+					'-b 1024' ,
+					'-v Bytes' ,
+					'DEF:free_min=data/memory-free.rrd:value:MIN' ,
+					'DEF:free_avg=data/memory-free.rrd:value:AVERAGE' ,
+					'DEF:free_max=data/memory-free.rrd:value:MAX' ,
+					'CDEF:free_nnl=free_avg,UN,0,free_avg,IF' ,
+					'DEF:cached_min=data/memory-cached.rrd:value:MIN' ,
+					'DEF:cached_avg=data/memory-cached.rrd:value:AVERAGE' ,
+					'DEF:cached_max=data/memory-cached.rrd:value:MAX' ,
+					'CDEF:cached_nnl=cached_avg,UN,0,cached_avg,IF' ,
+					'DEF:buffered_min=data/memory-buffered.rrd:value:MIN' ,
+					'DEF:buffered_avg=data/memory-buffered.rrd:value:AVERAGE' ,
+					'DEF:buffered_max=data/memory-buffered.rrd:value:MAX' ,
+					'CDEF:buffered_nnl=buffered_avg,UN,0,buffered_avg,IF' ,
+					'DEF:used_min=data/memory-used.rrd:value:MIN' ,
+					'DEF:used_avg=data/memory-used.rrd:value:AVERAGE' ,
+					'DEF:used_max=data/memory-used.rrd:value:MAX' ,
+					'CDEF:used_nnl=used_avg,UN,0,used_avg,IF' ,
+					'CDEF:used_stk=used_nnl' ,
+					'CDEF:buffered_stk=buffered_nnl,used_stk,+' ,
+					'CDEF:cached_stk=cached_nnl,buffered_stk,+' ,
+					'CDEF:free_stk=free_nnl,cached_stk,+' ,
+					'AREA:free_stk#bff7bf' ,
+					'"LINE1:free_stk#00e000:free    "' ,
+					'"GPRINT:free_min:MIN:%5.1lf%s Min,"' ,
+					'"GPRINT:free_avg:AVERAGE:%5.1lf%s Avg,"' ,
+					'"GPRINT:free_max:MAX:%5.1lf%s Max,"' ,
+					'"GPRINT:free_avg:LAST:%5.1lf%s Last\\l"' ,
+					'AREA:cached_stk#bfbfff' ,
+					'"LINE1:cached_stk#0000ff:cached  "' ,
+					'"GPRINT:cached_min:MIN:%5.1lf%s Min,"' ,
+					'"GPRINT:cached_avg:AVERAGE:%5.1lf%s Avg,"' ,
+					'"GPRINT:cached_max:MAX:%5.1lf%s Max,"' ,
+					'"GPRINT:cached_avg:LAST:%5.1lf%s Last\\l"' ,
+					'AREA:buffered_stk#ffebbf' ,
+					'"LINE1:buffered_stk#ffb000:buffered"' ,
+					'"GPRINT:buffered_min:MIN:%5.1lf%s Min,"' ,
+					'"GPRINT:buffered_avg:AVERAGE:%5.1lf%s Avg,"' ,
+					'"GPRINT:buffered_max:MAX:%5.1lf%s Max,"' ,
+					'"GPRINT:buffered_avg:LAST:%5.1lf%s Last\\l"' ,
+					'AREA:used_stk#ffbfbf' ,
+					'"LINE1:used_stk#ff0000:used    "' ,
+					'"GPRINT:used_min:MIN:%5.1lf%s Min,"' ,
+					'"GPRINT:used_avg:AVERAGE:%5.1lf%s Avg,"' ,
+					'"GPRINT:used_max:MAX:%5.1lf%s Max,"' ,
+					'"GPRINT:used_avg:LAST:%5.1lf%s Last\\l"'],
+				if_octets: [
+					'-s end-1h',
+					'-e 1303382682',
+					'-w 600',
+					'-h 120',
+					'-t if_octets-eth0' ,
+					'-v Bits/s' ,
+					'-E' ,
+					'--units=si' ,
+					'DEF:out_min_raw=data/if_octets-eth0.rrd:tx:MIN' ,
+					'DEF:out_avg_raw=data/if_octets-eth0.rrd:tx:AVERAGE' ,
+					'DEF:out_max_raw=data/if_octets-eth0.rrd:tx:MAX' ,
+					'DEF:inc_min_raw=data/if_octets-eth0.rrd:rx:MIN' ,
+					'DEF:inc_avg_raw=data/if_octets-eth0.rrd:rx:AVERAGE' ,
+					'DEF:inc_max_raw=data/if_octets-eth0.rrd:rx:MAX' ,
+					'CDEF:out_min=out_min_raw,8,*' ,
+					'CDEF:out_avg=out_avg_raw,8,*' ,
+					'CDEF:out_max=out_max_raw,8,*' ,
+					'CDEF:inc_min=inc_min_raw,8,*' ,
+					'CDEF:inc_avg=inc_avg_raw,8,*' ,
+					'CDEF:inc_max=inc_max_raw,8,*' ,
+					'CDEF:overlap=out_avg,inc_avg,GT,inc_avg,out_avg,IF' ,
+					'CDEF:mytime=out_avg_raw,TIME,TIME,IF' ,
+					'CDEF:sample_len_raw=mytime,PREV(mytime),-' ,
+					'CDEF:sample_len=sample_len_raw,UN,0,sample_len_raw,IF' ,
+					'CDEF:out_avg_sample=out_avg_raw,UN,0,out_avg_raw,IF,sample_len,*' ,
+					'CDEF:out_avg_sum=PREV,UN,0,PREV,IF,out_avg_sample,+' ,
+					'CDEF:inc_avg_sample=inc_avg_raw,UN,0,inc_avg_raw,IF,sample_len,*' ,
+					'CDEF:inc_avg_sum=PREV,UN,0,PREV,IF,inc_avg_sample,+' ,
+					'AREA:out_avg#B7EFB7' ,
+					'AREA:inc_avg#B7B7F7' ,
+					'AREA:overlap#89B3C9' ,
+					'"LINE1:out_avg#00E000:Outgoing"' ,
+					'"GPRINT:out_avg:AVERAGE:%5.1lf%s Avg,"' ,
+					'"GPRINT:out_max:MAX:%5.1lf%s Max,"' ,
+					'"GPRINT:out_avg:LAST:%5.1lf%s Last"' ,
+					'"GPRINT:out_avg_sum:LAST:(ca. %5.1lf%sB Total)\\l"' ,
+					'"LINE1:inc_avg#0000FF:Incoming"' ,
+					'"GPRINT:inc_avg:AVERAGE:%5.1lf%s Avg,"' ,
+					'"GPRINT:inc_max:MAX:%5.1lf%s Max,"' ,
+					'"GPRINT:inc_avg:LAST:%5.1lf%s Last"' ,
+					'"GPRINT:inc_avg_sum:LAST:(ca. %5.1lf%sB Total)\\l"' ]
+			}		
+					
+			var select = document.getElementById('select');
+			select.options[select.options.length] = new Option("Select example", "", true, true);
+			for (var option in examples) {
+				select.options[select.options.length] = new Option(option, option, false, false);
+			}
+			
+		</script>
+	</body>
+</html>

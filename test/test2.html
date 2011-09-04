@@ -1,0 +1,180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<title>RRD Canvas</title>
+    <script type="text/javascript" src="../js/sprintf.js"></script>
+    <script type="text/javascript" src="../js/strftime.js"></script>
+    <script type="text/javascript" src="../js/RrdRpn.js"></script>
+    <script type="text/javascript" src="../js/RrdTime.js"></script>
+    <script type="text/javascript" src="../js/RrdGraph.js"></script>
+    <script type="text/javascript" src="../js/RrdGfxCanvas.js"></script>
+    <script type="text/javascript" src="../js/binaryXHR.js"></script>
+    <script type="text/javascript" src="../js/rrdFile.js"></script>
+    <script type="text/javascript" src="../js/RrdDataFile.js"></script>
+    <script type="text/javascript" src="../js/RrdCmdLine.js"></script>
+		<script type="application/x-javascript">
+			var mouse_move = function (e) {
+				if (this.rrdgraph.mousedown) {
+					var factor = (this.rrdgraph.end - this.rrdgraph.start) / this.rrdgraph.xsize;
+					var x = e.pageX - this.offsetLeft;
+					var diff = x - this.rrdgraph.mousex;
+					var difffactor = Math.abs(Math.round(diff*factor));
+					if (diff > 0) {
+						this.rrdgraph.end -= difffactor;
+						this.rrdgraph.start -= difffactor;
+					} else {
+						this.rrdgraph.end += difffactor;
+						this.rrdgraph.start += difffactor;
+					}
+					this.rrdgraph.mousex = x;
+					var start = new Date();
+					try {
+						this.rrdgraph.graph_paint();
+					} catch (e) {
+						alert(e+"\n"+e.stack);
+					}
+					var end = new Date();
+					document.getElementById("draw").innerHTML = 'Draw time: '+(end.getTime()-start.getTime())+"ms";
+				}
+			};
+			var mouse_up = function (e) { 
+				this.rrdgraph.mousedown = false;
+				this.style.cursor="default";
+			};
+			var mouse_down = function (e) {
+				var x = e.pageX - this.offsetLeft;
+				this.rrdgraph.mousedown = true;
+				this.rrdgraph.mousex = x;
+				this.style.cursor="move";
+			};
+			var mouse_scroll = function (e) {
+				e = e ? e : window.event;
+				var wheel = e.detail ? e.detail * -1 : e.wheelDelta / 40;
+				var cstime = this.stime[this.stidx];
+				if (wheel > 0) {
+					this.stidx++;
+					if (this.stidx >= this.stlen) this.stidx = this.stlen-1;
+				} else {
+					this.stidx--;
+					if (this.stidx < 0) this.stidx = 0;
+				}
+				if (cstime !== this.stime[this.stidx])  {
+					var middle = this.rrdgraph.start + Math.abs(Math.round((this.rrdgraph.end - this.rrdgraph.start)/2));
+					this.rrdgraph.start = Math.round(middle - this.stime[this.stidx]/2);
+					this.rrdgraph.end = this.rrdgraph.start + this.stime[this.stidx];
+
+					var start = new Date();
+					try {
+						this.rrdgraph.graph_paint();
+					} catch (e) {
+						alert(e+"\n"+e.stack);
+					}
+					var end = new Date();
+					document.getElementById("draw").innerHTML = 'Draw time: '+(end.getTime()-start.getTime())+"ms";
+				}
+
+				if(e.stopPropagation)
+					e.stopPropagation();
+				if(e.preventDefault)
+					e.preventDefault();
+				e.cancelBubble = true;
+				e.cancel = true;
+				e.returnValue = false;
+				return false; 
+			};
+
+			function draw() {
+				RrdGraph.prototype.mousex = 0;
+				RrdGraph.prototype.mousedown = false;
+
+				var cmdline = document.getElementById("cmdline").value;
+				var gfx = new RrdGfxCanvas("canvas");
+        var fetch = new RrdDataFile();
+        var rrdcmdline = null;
+
+        var start = new Date();
+        try {
+          rrdcmdline = new RrdCmdLine(gfx, fetch, cmdline);
+				} catch (e) {
+					alert(e+"\n"+e.stack);
+				}
+
+				var rrdgraph = rrdcmdline.graph;
+				
+				gfx.canvas.stime = [ 300, 600, 900, 1200, 1800, 3600, 7200, 21600, 43200, 86400, 172800, 604800, 2592000, 5184000, 15768000, 31536000 ];
+				gfx.canvas.stlen = gfx.canvas.stime.length;
+				gfx.canvas.stidx = 0;
+
+				gfx.canvas.rrdgraph = rrdgraph;
+				gfx.canvas.removeEventListener('mousemove', mouse_move, false);
+				gfx.canvas.addEventListener('mousemove', mouse_move, false);
+				gfx.canvas.removeEventListener('mouseup', mouse_up, false);
+				gfx.canvas.addEventListener('mouseup', mouse_up, false);
+				gfx.canvas.removeEventListener('mousedown', mouse_down, false);
+				gfx.canvas.addEventListener('mousedown', mouse_down, false);
+				gfx.canvas.removeEventListener('mouseout', mouse_up, false);
+				gfx.canvas.addEventListener('mouseout', mouse_up, false);
+				gfx.canvas.removeEventListener('DOMMouseScroll', mouse_scroll, false);  
+				gfx.canvas.addEventListener('DOMMouseScroll', mouse_scroll, false);  
+				gfx.canvas.removeEventListener('mousewheel', mouse_scroll, false);
+				gfx.canvas.addEventListener('mousewheel', mouse_scroll, false);
+
+				var end = new Date();
+				document.getElementById("parse").innerHTML = 'Parse time: '+(end.getTime()-start.getTime())+"ms";
+
+				var diff = rrdgraph.end - rrdgraph.start;
+				for (var i=0; i < gfx.canvas.stlen; i++) {
+					if (gfx.canvas.stime[i] >= diff)  break;
+				}
+				if (i === gfx.canvas.stlen) gfx.canvas.stidx = gfx.canvas.stlen-1;
+				else gfx.canvas.stidx = i;
+
+				var start = new Date();
+				try {
+					rrdgraph.graph_paint();
+				} catch (e) {
+					alert(e+"\n"+e.stack);
+				}
+				var end = new Date();
+				document.getElementById("draw").innerHTML = 'Draw time: '+(end.getTime()-start.getTime())+"ms";
+			}
+		</script>
+	</head>
+	<body>
+		<textarea id="cmdline" rows="10" cols="120">-s end-1h -e 1305798665 -w 600 -h 120 -v "System load" -t Load -E 
+DEF:s_avg=data/load.rrd:shortterm:AVERAGE
+DEF:s_min=data/load.rrd:shortterm:MIN
+DEF:s_max=data/load.rrd:shortterm:MAX
+DEF:m_avg=data/load.rrd:midterm:AVERAGE
+DEF:m_min=data/load.rrd:midterm:MIN
+DEF:m_max=data/load.rrd:midterm:MAX
+DEF:l_avg=data/load.rrd:longterm:AVERAGE
+DEF:l_min=data/load.rrd:longterm:MIN
+DEF:l_max=data/load.rrd:longterm:MAX
+AREA:s_max#B7EFB7
+AREA:s_min#FFFFFF
+"LINE1:s_avg#00E000: 1m average"
+"GPRINT:s_min:MIN:%4.2lf Min,"
+"GPRINT:s_avg:AVERAGE:%4.2lf Avg,"
+"GPRINT:s_max:MAX:%4.2lf Max,"
+"GPRINT:s_avg:LAST:%4.2lf Last\n"
+"LINE1:m_avg#0000FF: 5m average"
+"GPRINT:m_min:MIN:%4.2lf Min,"
+"GPRINT:m_avg:AVERAGE:%4.2lf Avg,"
+"GPRINT:m_max:MAX:%4.2lf Max,"
+"GPRINT:m_avg:LAST:%4.2lf Last\n"
+"LINE1:l_avg#FF0000:15m average"
+"GPRINT:l_min:MIN:%4.2lf Min,"
+"GPRINT:l_avg:AVERAGE:%4.2lf Avg,"
+"GPRINT:l_max:MAX:%4.2lf Max,"
+"GPRINT:l_avg:LAST:%4.2lf Last\n"</textarea>
+		<br>
+		<button name="submit" onclick="javascript:draw()" >draw</button>
+		<br>
+		<canvas id="canvas"></canvas>
+		<p id="parse"></p>
+		<p id="draw"></p>
+	</body>
+</html>
