@@ -21,6 +21,13 @@
 
 "use strict";
 
+var RrdTimeError = function (message) 
+{  
+    this.prototype = Error.prototype;  
+    this.name = "RrdTimeError";  
+    this.message = (message) ? message : "Error";  
+};  
+
 /**
  * RrdTime
  * @constructor
@@ -227,7 +234,7 @@ RrdTime.prototype.plus_minus = function (doop)
 	if (doop >= 0) {
 		op = doop;
 		if (this.gettok() != RrdTime.NUMBER)
-			throw new Error("There should be number after '"+(op == RrdTime.PLUS ? '+' : '-')+"'");
+			throw new RrdTimeError("There should be number after '"+(op == RrdTime.PLUS ? '+' : '-')+"'");
 		prev_multiplier = -1;   /* reset months-minutes guessing mechanics */
 	}
 	/* if doop is < 0 then we repeat the previous op with the prefetched number */
@@ -279,7 +286,7 @@ RrdTime.prototype.plus_minus = function (doop)
 			this.offset += (op == RrdTime.PLUS) ? delta : -delta;
 			return;
 	}
-	throw new Error("well-known time unit expected after "+delta);
+	throw new RrdTimeError("well-known time unit expected after "+delta);
 };
 
 RrdTime.prototype.tod = function() /* tod() computes the time of day (TIME-OF-DAY-SPEC) */
@@ -303,16 +310,16 @@ RrdTime.prototype.tod = function() /* tod() computes the time of day (TIME-OF-DA
 	}
 	if (this.tokid == RrdTime.COLON) {
 		if (this.gettok() != RrdTime.NUMBER)
-			throw new Error("Parsing HH:MM syntax, expecting MM as number, got none");
+			throw new RrdTimeError("Parsing HH:MM syntax, expecting MM as number, got none");
 		minute = this.token;
 		if (minute > 59)
-			throw new Error("parsing HH:MM syntax, got MM = "+minute+" (>59!)");
+			throw new RrdTimeError("parsing HH:MM syntax, got MM = "+minute+" (>59!)");
 		this.gettok();
 	}
 	/* check if an AM or PM specifier was given */
 	if (this.tokid == RrdTime.AM || this.tokid == RrdTime.PM) {
 		if (hour > 12) {
-			throw new Error("there cannot be more than 12 AM or PM hours");
+			throw new RrdTimeError("there cannot be more than 12 AM or PM hours");
 		}
 		if (this.tokid == RrdTime.PM) {
 			if (hour != 12) /* 12:xx PM is 12:xx, not 24:xx */
@@ -343,7 +350,7 @@ RrdTime.prototype.assign_date = function(mday, mon, year)
 		if (year > 1970) {
 			year -= 1900;
 		} else {
-			throw new Error("invalid year "+year+" (should be either 00-99 or >1900)");
+			throw new RrdTimeError("invalid year "+year+" (should be either 00-99 or >1900)");
 		}
 	} else if (year >= 0 && year < 38) {
 		year += 100;    /* Allow year 2000-2037 to be specified as   */
@@ -351,7 +358,7 @@ RrdTime.prototype.assign_date = function(mday, mon, year)
 	/* 00-37 until the problem of 2038 year will */
 	/* arise for unices with 32-bit time_t :)    */
 	if (year < 70)
-		throw new Error("won't handle dates before epoch (01/01/1970), sorry");
+		throw new RrdTimeError("won't handle dates before epoch (01/01/1970), sorry");
 
 	this.tm_mday = mday;
 	this.tm_mon = mon;
@@ -387,7 +394,7 @@ RrdTime.prototype.day = function ()
 		case RrdTime.DEC:
 			mon = (this.tokid - RrdTime.JAN);
 			if (this.gettok() != RrdTime.NUMBER)
-				throw new Error("the day of the month should follow month name");
+				throw new RrdTimeError("the day of the month should follow month name");
 			mday = this.token;
 			if (this.gettok() == RrdTime.NUMBER) {
 				year =	this.token;
@@ -426,11 +433,11 @@ RrdTime.prototype.day = function ()
 				if (mon <= 31 && (this.tokid == RrdTime.SLASH || this.tokid == RrdTime.DOT)) {
 					var sep = this.tokid;
 					if (this.gettok() != RrdTime.NUMBER)
-						throw new Error("there should be "+(RrdTime.DOT ? "month" : "day")+" number after '"+(RrdTime.DOT ? '.' : '/')+"'");
+						throw new RrdTimeError("there should be "+(RrdTime.DOT ? "month" : "day")+" number after '"+(RrdTime.DOT ? '.' : '/')+"'");
 					mday = this.token;
 					if (this.gettok() == sep) {
 						if (this.gettok() != RrdTime.NUMBER)
-							throw new Error("there should be year number after '"+(sep == RrdTime.DOT ? '.' : '/')+"'");
+							throw new RrdTimeError("there should be year number after '"+(sep == RrdTime.DOT ? '.' : '/')+"'");
 						year = this.token;
 						this.gettok();
 					}
@@ -443,9 +450,9 @@ RrdTime.prototype.day = function ()
 		}
 		mon--;
 		if (mon < 0 || mon > 11)
-			throw new Error("did you really mean month "+(mon+1)+"?");
+			throw new RrdTimeError("did you really mean month "+(mon+1)+"?");
 		if (mday < 1 || mday > 31)
-			throw new Error("I'm afraid that "+mday+" is not a valid day of the month");
+			throw new RrdTimeError("I'm afraid that "+mday+" is not a valid day of the month");
 		this.assign_date(mday, mon, year);
 		break;
 	}
@@ -499,9 +506,9 @@ RrdTime.prototype.parser = function(tspec)
 			if (this.tokid == RrdTime.PLUS || this.tokid == RrdTime.MINUS)
 				break;
 			if (time_reference != RrdTime.NOW) {
-				throw new Error("'start' or 'end' MUST be followed by +|- offset");
+				throw new RrdTimeError("'start' or 'end' MUST be followed by +|- offset");
 			} else if (this.tokid != RrdTime.EOF) {
-				throw new Error("if 'now' is followed by a token it must be +|- offset");
+				throw new RrdTimeError("if 'now' is followed by a token it must be +|- offset");
 			}
 			break;
 		case RrdTime.NUMBER: /* Only absolute time specifications below */
@@ -547,7 +554,7 @@ RrdTime.prototype.parser = function(tspec)
 			this.day();
 			break;
 		default:
-			throw new Error("unparsable time: "+this.token+" "+this.sct);
+			throw new RrdTimeError("unparsable time: "+this.token+" "+this.sct);
 			break;
 	} /* ugly case statement */
 
@@ -570,7 +577,7 @@ RrdTime.prototype.parser = function(tspec)
 
 	/* now we should be at EOF */
 	if (this.tokid != RrdTime.EOF)
-		throw new Error("unparsable trailing text: '..."+this.token+"'");
+		throw new RrdTimeError("unparsable trailing text: '..."+this.token+"'");
 //	if (this.type == RrdTime.ABSOLUTE_TIME)
 //		if (mktime(&ptv->tm) == -1)  // FIXME ??
 //			panic(e("the specified time is incorrect (out of range?)"));
@@ -599,11 +606,11 @@ RrdTime.proc_start_end = function(start_t, end_t)
 	var start, end;
 
 	if (start_t.type == RrdTime.RELATIVE_TO_END_TIME &&  end_t.type == RrdTime.RELATIVE_TO_START_TIME)
-		throw new Error("the start and end times cannot be specified relative to each other");
+		throw new RrdTimeError("the start and end times cannot be specified relative to each other");
 	if (start_t.type == RrdTime.RELATIVE_TO_START_TIME)
-		throw new Error("the start time cannot be specified relative to itself");
+		throw new RrdTimeError("the start time cannot be specified relative to itself");
 	if (end_t.type == RrdTime.RELATIVE_TO_END_TIME)
-		throw new Error("the end time cannot be specified relative to itself");
+		throw new RrdTimeError("the end time cannot be specified relative to itself");
 
 	if (start_t.type == RrdTime.RELATIVE_TO_END_TIME) {
 		end = end_t.mktime() + end_t.offset;

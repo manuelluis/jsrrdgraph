@@ -21,6 +21,13 @@
 
 "use strict";
 
+var RrdRpnError = function (message) 
+{
+    this.prototype = Error.prototype;
+    this.name = "RrdRpnError";
+    this.message = (message) ? message : "RPN stack underflow";
+};
+
 /**
  * RrdRpn
  * @constructor
@@ -81,8 +88,6 @@ RrdRpn.OP_PREDICTSIGMA = 48;
 RrdRpn.OP_AVG = 49;
 RrdRpn.OP_ABS = 50;
 RrdRpn.OP_ADDNAN = 51 ;
-
-RrdRpn.STACK_UNDERFLOW = 'RPN stack underflow';
 
 RrdRpn.prototype.rpnexpr = null;
 RrdRpn.prototype.rpnstack = null;
@@ -237,7 +242,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 			case RrdRpn.OP_VARIABLE:
 			case RrdRpn.OP_PREV_OTHER:
 				if (this.rpnp[rpi].ds_cnt == 0) {
-					throw "VDEF made it into rpn_calc... aborting";
+					throw new RrdRpnError("VDEF made it into rpn_calc... aborting");
 				} else {
 					if (this.rpnp[rpi].op == RrdRpn.OP_VARIABLE) {
 						this.rpnstack[++stptr] = this.rpnp[rpi].data[this.rpnp[rpi].pdata];
@@ -277,12 +282,12 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				this.rpnstack[++stptr] = date.getTimezoneOffset() * 60 + data_idx;
 				break;
 			case RrdRpn.OP_ADD:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				this.rpnstack[stptr - 1] = this.rpnstack[stptr - 1] + this.rpnstack[stptr];
 				stptr--;
 				break;
 			case RrdRpn.OP_ADDNAN:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 1])) {
 						this.rpnstack[stptr - 1] = this.rpnstack[stptr];
 				} else if (isNaN(this.rpnstack[stptr])) {
@@ -294,84 +299,84 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr--;
 				break;
 			case RrdRpn.OP_SUB:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				this.rpnstack[stptr - 1] = this.rpnstack[stptr - 1] - this.rpnstack[stptr];
 				stptr--;
 				break;
 			case RrdRpn.OP_MUL:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				this.rpnstack[stptr - 1] = (this.rpnstack[stptr - 1]) * (this.rpnstack[stptr]);
 				stptr--;
 				break;
 			case RrdRpn.OP_DIV:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				this.rpnstack[stptr - 1] = this.rpnstack[stptr - 1] / this.rpnstack[stptr];
 				stptr--;
 				break;
 			case RrdRpn.OP_MOD:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				this.rpnstack[stptr - 1] = this.fmod(this.rpnstack[stptr - 1] , this.rpnstack[stptr]);
 				stptr--;
 				break;
 			case RrdRpn.OP_SIN:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = Math.sin(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_ATAN:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = Math.atan(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_RAD2DEG:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = 57.29577951 * this.rpnstack[stptr];
 				break;
 			case RrdRpn.OP_DEG2RAD:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = 0.0174532952 * this.rpnstack[stptr];
 				break;
 			case RrdRpn.OP_ATAN2:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				this.rpnstack[stptr - 1] = Math.atan2(this.rpnstack[stptr - 1], this.rpnstack[stptr]);
 				stptr--;
 				break;
 			case RrdRpn.OP_COS:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = Math.cos(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_CEIL:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = Math.ceil(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_FLOOR:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = Math.floor(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_LOG:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = Math.log(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_DUP:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr + 1] = this.rpnstack[stptr];
 				stptr++;
 				break;
 			case RrdRpn.OP_POP:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				stptr--;
 				break;
 			case RrdRpn.OP_EXC:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW; {
+				if(stptr < 1) throw new RrdRpnError(); {
 					var dummy = this.rpnstack[stptr];
 					this.rpnstack[stptr] = this.rpnstack[stptr - 1];
 					this.rpnstack[stptr - 1] = dummy;
 				}
 				break;
 			case RrdRpn.OP_EXP:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = Math.exp(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_LT:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 1])) {
 				} else if (isNaN(this.rpnstack[stptr])) {
 					this.rpnstack[stptr - 1] = this.rpnstack[stptr];
@@ -381,7 +386,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr--;
 				break;
 			case RrdRpn.OP_LE:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 1])) {
 				} else if (isNaN(this.rpnstack[stptr])) {
 					this.rpnstack[stptr - 1] = this.rpnstack[stptr];
@@ -391,7 +396,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr--;
 				break;
 			case RrdRpn.OP_GT:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 1])) {
 				} else if (isNaN(this.rpnstack[stptr])) {
 					this.rpnstack[stptr - 1] = this.rpnstack[stptr];
@@ -401,7 +406,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr--;
 				break;
 			case RrdRpn.OP_GE:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 1])) {
 				} else if (isNaN(this.rpnstack[stptr])) {
 					this.rpnstack[stptr - 1] = this.rpnstack[stptr];
@@ -411,7 +416,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr--;
 				break;
 			case RrdRpn.OP_NE:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 1])) {
 				} else if (isNaN(this.rpnstack[stptr])) {
 					this.rpnstack[stptr - 1] = this.rpnstack[stptr];
@@ -421,7 +426,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr--;
 				break;
 			case RrdRpn.OP_EQ:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 1])) {
 				} else if (isNaN(this.rpnstack[stptr])) {
 					this.rpnstack[stptr - 1] = this.rpnstack[stptr];
@@ -431,13 +436,13 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr--;
 				break;
 			case RrdRpn.OP_IF:
-				if(stptr < 2) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 2) throw new RrdRpnError();
 				this.rpnstack[stptr - 2] = (isNaN(this.rpnstack[stptr - 2]) || this.rpnstack[stptr - 2] == 0.0) ? this.rpnstack[stptr] : this.rpnstack[stptr - 1];
 				stptr--;
 				stptr--;
 				break;
 			case RrdRpn.OP_MIN:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 1])) {
 				} else if (isNaN(this.rpnstack[stptr])) {
 					this.rpnstack[stptr - 1] = this.rpnstack[stptr];
@@ -447,7 +452,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr--;
 				break;
 			case RrdRpn.OP_MAX:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 1])) {
 				} else if (isNaN(this.rpnstack[stptr])) {
 					this.rpnstack[stptr - 1] = this.rpnstack[stptr];
@@ -457,7 +462,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr--;
 				break;
 			case RrdRpn.OP_LIMIT:
-				if(stptr < 2) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 2) throw new RrdRpnError();
 				if (isNaN(this.rpnstack[stptr - 2])) {
 				} else if (isNaN(this.rpnstack[stptr - 1])) {
 						this.rpnstack[stptr - 2] = this.rpnstack[stptr - 1];
@@ -471,21 +476,21 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				stptr -= 2;
 				break;
 			case RrdRpn.OP_UN:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = isNaN(this.rpnstack[stptr]) ? 1.0 : 0.0;
 				break;
 			case RrdRpn.OP_ISINF:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = isInfinite(this.rpnstack[stptr]) ? 1.0 : 0.0;
 				break;
 			case RrdRpn.OP_SQRT:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = Math.sqrt(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_SORT:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				var spn = this.rpnstack[stptr--];
-				if(stptr < spn - 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < spn - 1) throw new RrdRpnError();
 				var array = this.rpnstack.slice(stptr - spn + 1, stptr +1);
 				array.sort(this.compare_double);
 				for (var i=stptr - spn + 1, ii=0; i < (stptr +1) ; i++, ii++)
@@ -493,9 +498,9 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				// qsort(this.rpnstack + stptr - spn + 1, spn, sizeof(double), rpn_compare_double);
 				break;
 			case RrdRpn.OP_REV:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				var spn = this.rpnstack[stptr--];
-				if(stptr < spn - 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < spn - 1) throw new RrdRpnError();
 				var array = this.rpnstack.slice(stptr - spn + 1, stptr +1);
 				array.reverse();
 				for (var i=stptr - spn + 1, ii=0; i < (stptr +1) ; i++, ii++)
@@ -503,10 +508,10 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				break;
 			case RrdRpn.OP_PREDICT:
 			case RrdRpn.OP_PREDICTSIGMA:
-				if(stptr < 2) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 2) throw new RrdRpnError();
 				var locstepsize = this.rpnstack[--stptr];
 				var shifts = this.rpnstack[--stptr];
-				if(stptr < shifts) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < shifts) throw new RrdRpnError();
 				if (shifts<0) stptr--;
 				else stptr-=shifts;
 				var val=Number.NaN;
@@ -524,7 +529,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 					if (shifts<0) shiftstep = loop*this.rpnstack[stptr];
 					else shiftstep = this.rpnstack[stptr+loop];
 					if(shiftstep <0) {
-						throw "negative shift step not allowed: "+shiftstep;
+						throw new RrdRpnError("negative shift step not allowed: "+shiftstep);
 					}
 					shiftstep=Math.ceil(shiftstep/dsstep);
 					for(var i=0;i<=locstep;i++) {
@@ -556,9 +561,9 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				break;
 			case RrdRpn.OP_TREND:
 			case RrdRpn.OP_TRENDNAN:
-				if(stptr < 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 1) throw new RrdRpnError();
 				if ((rpi < 2) || (this.rpnp[rpi - 2].op != RrdRpn.OP_VARIABLE)) {
-					throw "malformed trend arguments";
+					throw new RrdRpnError("malformed trend arguments");
 				} else {
 					var dur = this.rpnstack[stptr];
 					var step = this.rpnp[rpi - 2].step;
@@ -583,12 +588,12 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				}
 				break;
 			case RrdRpn.OP_AVG:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				var i = this.rpnstack[stptr--];
 				var sum = 0;
 				var count = 0;
 
-				if(stptr < i - 1) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < i - 1) throw new RrdRpnError();
 				while (i > 0) {
 					var val = this.rpnstack[stptr--];
 					i--;
@@ -600,14 +605,14 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				else this.rpnstack[++stptr] = Number.NaN;
 				break;
 			case RrdRpn.OP_ABS:
-				if(stptr < 0) throw RrdRpn.STACK_UNDERFLOW;
+				if(stptr < 0) throw new RrdRpnError();
 				this.rpnstack[stptr] = fabs(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_END:
 				break;
 		}
 	}
-	if (stptr != 0) throw "RPN final stack size != 1";
+	if (stptr != 0) throw new RrdRpnError("RPN final stack size != 1");
 	output[output_idx] = this.rpnstack[0];
 	return 0;
 };
