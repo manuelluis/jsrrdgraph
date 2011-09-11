@@ -1349,12 +1349,12 @@ RrdGraph.prototype = {
 					dataidx = -1;
 
 					var rpnp =  this.gdes[gdi].rpnp.rpnp;
-					for (var rpi = 0; rpnp[rpi].op != RrdRpn.op.END; rpi++) {
-						if (rpnp[rpi].op === RrdRpn.op.VARIABLE || rpnp[rpi].op === RrdRpn.op.PREV_OTHER) {
+					for (var rpi = 0; rpnp[rpi].op != RrdRpn.OP_END; rpi++) {
+						if (rpnp[rpi].op === RrdRpn.OP_VARIABLE || rpnp[rpi].op === RrdRpn.OP_PREV_OTHER) {
 							var ptr = rpnp[rpi].ptr;
 							if (this.gdes[ptr].ds_cnt === 0) {    /* this is a VDEF data source */
 								rpnp[rpi].val = this.gdes[ptr].vf.val;
-								rpnp[rpi].op = RrdRpn.op.NUMBER;
+								rpnp[rpi].op = RrdRpn.OP_NUMBER;
 							} else {    /* normal variables and PREF(variables) */
 								++stepcnt;
 								steparray[stepcnt - 1] = this.gdes[ptr].step;
@@ -1372,8 +1372,8 @@ RrdGraph.prototype = {
 						}
 					}
 					/* move the data pointers to the correct period */
-					for (var rpi = 0; rpnp[rpi].op != RrdRpn.op.END; rpi++) {
-						if (rpnp[rpi].op === RrdRpn.op.VARIABLE || rpnp[rpi].op === RrdRpn.op.PREV_OTHER) {
+					for (var rpi = 0; rpnp[rpi].op != RrdRpn.OP_END; rpi++) {
+						if (rpnp[rpi].op === RrdRpn.OP_VARIABLE || rpnp[rpi].op === RrdRpn.OP_PREV_OTHER) {
 							var ptr = rpnp[rpi].ptr;
 							var diff = this.gdes[gdi].start - this.gdes[ptr].start;
 
