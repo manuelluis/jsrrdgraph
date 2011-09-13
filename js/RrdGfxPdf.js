@@ -226,17 +226,17 @@ RrdGfxPdf.prototype = {
 		this._stroke();
 */
 		switch (h_align) {
-			case RrdGraph.GFX_H.LEFT:
+			case RrdGraph.GFX_H_LEFT:
 //				console.log("LEFT x: "+x+" width: "+width+" ("+text+")");
 				if (angle == -90) {
 					x = x-height/2;
 				}
 				break;
-			case RrdGraph.GFX_H.RIGHT:
+			case RrdGraph.GFX_H_RIGHT:
 //				console.log("RIGHT "+x+" width: "+width+" ("+text+")");
 				x = x-width;
 				break;
-			case RrdGraph.GFX_H.CENTER:
+			case RrdGraph.GFX_H_CENTER:
 //				console.log("CENTER x: "+x+" width: "+width+" ("+text+")");
 				if (angle != 90) {
 					x = x-width/2;
@@ -245,17 +245,17 @@ RrdGfxPdf.prototype = {
 		}
 
 		switch (v_align) {
-			case RrdGraph.GFX_V.TOP:
+			case RrdGraph.GFX_V_TOP:
 //				console.log("TOP y: "+y+" h: "+height+" ("+text+")");
 				if (angle != -90) {
 					y = y + height/2;
 				}
 				break;
-			case RrdGraph.GFX_V.BOTTOM:
+			case RrdGraph.GFX_V_BOTTOM:
 //				console.log("BOTTOM y: "+y+" h: "+height+" ("+text+")");
 				y = y - height/3;
 				break;
-			case RrdGraph.GFX_V.CENTER:
+			case RrdGraph.GFX_V_CENTER:
 //				console.log("CENTER y: "+y+" h: "+height+" ("+text+")");
 				if (angle == 90) {
 					y = y + width/2;

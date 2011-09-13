@@ -271,16 +271,16 @@ RrdJson.prototype = {
 				case 'TEXTALIGN':
 					switch (gdes[i].align) {
 						case 'left':
-							this.graph.gdes_add_textaling(RrdGraphDesc.TXA.LEFT);
+							this.graph.gdes_add_textaling(RrdGraphDesc.TXA_LEFT);
 							break
 						case 'right':
-							this.graph.gdes_add_textaling(RrdGraphDesc.TXA.RIGHT);
+							this.graph.gdes_add_textaling(RrdGraphDesc.TXA_RIGHT);
 							break
 						case 'justified':
-							this.graph.gdes_add_textaling(RrdGraphDesc.TXA.JUSTIFIED);
+							this.graph.gdes_add_textaling(RrdGraphDesc.TXA_JUSTIFIED);
 							break
 						case 'center':
-							this.graph.gdes_add_textaling(RrdGraphDesc.TXA.CENTER);
+							this.graph.gdes_add_textaling(RrdGraphDesc.TXA_CENTER);
 							break
 					}
 				break;
@@ -462,7 +462,7 @@ RrdJson.prototype = {
 		for (var i = 0, gdes_c = this.graph.gdes.length; i < gdes_c; i++) {
 			switch (this.graph.gdes[i].gf) {
 // 			GPRINT:vname:format
-				case RrdGraphDesc.GF.GPRINT:
+				case RrdGraphDesc.GF_GPRINT:
 					this.json.gdes.push({
 						type: 'GPRINT',
 						vname: this.graph.gdes[i].vname, 
@@ -471,7 +471,7 @@ RrdJson.prototype = {
 						strftm: (this.graph.gdes[i].strftm === false ? undefined : this.graph.gdes[i].strftm) });
 					break;
 // 			LINE[width]:value[#color][:[legend][:STACK]][:dashes[=on_s[,off_s[,on_s,off_s]...]][:dash-offset=offset]]
-				case RrdGraphDesc.GF.LINE:
+				case RrdGraphDesc.GF_LINE:
 					this.json.gdes.push({
 						type: 'LINE',
 						width: this.graph.gdes[i].linewidth,
@@ -481,7 +481,7 @@ RrdJson.prototype = {
 						stack: (this.graph.gdes[i].stack === false ? undefined : this.graph.gdes[i].stack) });
 					break;
 // 			AREA:value[#color][:[legend][:STACK]]
-				case RrdGraphDesc.GF.AREA:
+				case RrdGraphDesc.GF_AREA:
 					this.json.gdes.push({
 						type: 'AREA',
 						value: this.graph.gdes[i].vname,
@@ -490,7 +490,7 @@ RrdJson.prototype = {
 						stack: (this.graph.gdes[i].stack === false ? undefined : this.graph.gdes[i].stack) });
 					break;
 // 			TICK:vname#rrggbb[aa][:fraction[:legend]]
-				case RrdGraphDesc.GF.TICK:
+				case RrdGraphDesc.GF_TICK:
 					this.json.gdes.push({
 						type: 'TICK',
 						vname: this.graph.gdes[i].vname,
@@ -499,7 +499,7 @@ RrdJson.prototype = {
 						legend: (this.graph.gdes[i].legend === '' ? undefined : this.graph.gdes[i].legend.substr(2)) });
 					break;
 // 			HRULE:value#color[:legend][:dashes[=on_s[,off_s[,on_s,off_s]...]][:dash-offset=offset]]
-				case RrdGraphDesc.GF.HRULE:
+				case RrdGraphDesc.GF_HRULE:
 					this.json.gdes.push({
 						type: 'HRULE',
 						value: this.graph.gdes[i].yrule,
@@ -507,7 +507,7 @@ RrdJson.prototype = {
 						legend: (this.graph.gdes[i].legend === '' ? undefined : this.graph.gdes[i].legend.substr(2)) });
 					break;
 // 			VRULE:time#color[:legend][:dashes[=on_s[,off_s[,on_s,off_s]...]][:dash-offset=offset]]
-				case RrdGraphDesc.GF.VRULE:
+				case RrdGraphDesc.GF_VRULE:
 					this.json.gdes.push({
 						type: 'VRULE',
 						time: this.graph.gdes[i].xrule,
@@ -515,25 +515,25 @@ RrdJson.prototype = {
 						legend: (this.graph.gdes[i].legend === '' ? undefined : this.graph.gdes[i].legend.substr(2)) });
 					break;
 // 			COMMENT:text
-				case RrdGraphDesc.GF.COMMENT:
+				case RrdGraphDesc.GF_COMMENT:
 					this.json.gdes.push({
 						type: 'COMMENT',
 						legend: this.graph.gdes[i].legend});
 					break;
 // 			TEXTALIGN:{left|right|justified|center}
-				case RrdGraphDesc.GF.TEXTALIGN:
+				case RrdGraphDesc.GF_TEXTALIGN:
 					var align = '';
 					switch (this.graph.gdes[i].txtalign) {
-						case RrdGraphDesc.TXA.LEFT:
+						case RrdGraphDesc.TXA_LEFT:
 							align = 'left';	
 							break
-						case RrdGraphDesc.TXA.RIGHT:
+						case RrdGraphDesc.TXA_RIGHT:
 							align = 'right';
 							break
-						case RrdGraphDesc.TXA.JUSTIFIED:
+						case RrdGraphDesc.TXA_JUSTIFIED:
 							align = 'justified';
 							break
-						case RrdGraphDesc.TXA.CENTER:
+						case RrdGraphDesc.TXA_CENTER:
 							align = 'center';
 							break
 					}
@@ -543,7 +543,7 @@ RrdJson.prototype = {
 						align: align });
 					break;
 // 			DEF:<vname>=<rrdfile>:<ds-name>:<CF>[:step=<step>][:start=<time>][:end=<time>][:reduce=<CF>]
-				case RrdGraphDesc.GF.DEF:
+				case RrdGraphDesc.GF_DEF:
 					this.json.gdes.push({
 						type: 'DEF',
 						vname: this.graph.gdes[i].vname,
@@ -562,21 +562,21 @@ RrdJson.prototype = {
 				
 					break;
 // 			CDEF:vname=RPN expression
-				case RrdGraphDesc.GF.CDEF:
+				case RrdGraphDesc.GF_CDEF:
 					this.json.gdes.push({
 						type: 'CDEF',
 						vname: this.graph.gdes[i].vname,
 						rpn: this.graph.gdes[i].rpnp.rpnexpr});
 					break;
 // 			VDEF:vname=RPN expression
-				case RrdGraphDesc.GF.VDEF:
+				case RrdGraphDesc.GF_VDEF:
 					this.json.gdes.push({
 						type: 'VDEF',
 						vname: this.graph.gdes[i].vname,
 						rpn: this.graph.gdes[this.graph.gdes[i].vidx].vname+','+this.graph.gdes[i].vf.expr});
 					break;
 // 			SHIFT:vname:offset
-				case RrdGraphDesc.GF.SHIFT:
+				case RrdGraphDesc.GF_SHIFT:
 					this.json.gdes.push({
 						type: 'VDEF',
 						vname: this.graph.gdes[i].vname,

@@ -32,81 +32,7 @@ var RrdRpnError = function (message)
  * RrdRpn
  * @constructor
  */
-var RrdRpn = function() {
-	this.parser.apply(this, arguments);
-};
-
-RrdRpn.OP_NUMBER= 0;
-RrdRpn.OP_VARIABLE = 1;
-RrdRpn.OP_INF = 2;
-RrdRpn.OP_PREV = 3;
-RrdRpn.OP_NEGINF = 4;
-RrdRpn.OP_UNKN = 5;
-RrdRpn.OP_NOW = 6;
-RrdRpn.OP_TIME = 7;
-RrdRpn.OP_ADD = 8;
-RrdRpn.OP_MOD = 9;
-RrdRpn.OP_SUB = 10;
-RrdRpn.OP_MUL = 11;
-RrdRpn.OP_DIV = 12;
-RrdRpn.OP_SIN = 13;
-RrdRpn.OP_DUP = 14;
-RrdRpn.OP_EXC = 15;
-RrdRpn.OP_POP = 16;
-RrdRpn.OP_COS = 17;
-RrdRpn.OP_LOG = 18;
-RrdRpn.OP_EXP = 19;
-RrdRpn.OP_LT = 20;
-RrdRpn.OP_LE = 21;
-RrdRpn.OP_GT = 22;
-RrdRpn.OP_GE = 23;
-RrdRpn.OP_EQ = 24;
-RrdRpn.OP_IF = 25;
-RrdRpn.OP_MIN = 26;
-RrdRpn.OP_MAX = 27;
-RrdRpn.OP_LIMIT = 28;
-RrdRpn.OP_FLOOR = 29;
-RrdRpn.OP_CEIL = 30;
-RrdRpn.OP_UN = 31;
-RrdRpn.OP_END = 32;
-RrdRpn.OP_LTIME = 33;
-RrdRpn.OP_NE = 34;
-RrdRpn.OP_ISINF = 35;
-RrdRpn.OP_PREV_OTHER = 36;
-RrdRpn.OP_COUNT = 37;
-RrdRpn.OP_ATAN = 38;
-RrdRpn.OP_SQRT = 39;
-RrdRpn.OP_SORT = 40;
-RrdRpn.OP_REV = 41;
-RrdRpn.OP_TREND = 42;
-RrdRpn.OP_TRENDNAN = 43;
-RrdRpn.OP_ATAN2 = 44;
-RrdRpn.OP_RAD2DEG = 45;
-RrdRpn.OP_DEG2RAD = 46;
-RrdRpn.OP_PREDICT = 47;
-RrdRpn.OP_PREDICTSIGMA = 48;
-RrdRpn.OP_AVG = 49;
-RrdRpn.OP_ABS = 50;
-RrdRpn.OP_ADDNAN = 51 ;
-
-RrdRpn.prototype.rpnexpr = null;
-RrdRpn.prototype.rpnstack = null;
-RrdRpn.prototype.rpnp = null;
-
-RrdRpn.prototype.find_var = function(gdes, key)
-{
-	for (var ii = 0, gdes_c = gdes.length; ii < gdes_c; ii++) {
-		if ((gdes[ii].gf == RrdGraphDesc.GF.DEF ||
-			gdes[ii].gf == RrdGraphDesc.GF.VDEF ||
-			gdes[ii].gf == RrdGraphDesc.GF.CDEF)
-			&& gdes[ii].vname == key) {
-			return ii;
-		}
-	}
-	return -1;
-};
-
-RrdRpn.prototype.parser = function (str_expr, gdes)
+var RrdRpn = function (str_expr, gdes) /* parser */
 {
 	var steps = -1;
 	var expr;
@@ -114,6 +40,7 @@ RrdRpn.prototype.parser = function (str_expr, gdes)
 	
 	this.rpnexpr = str_expr;
 	this.rpnp = [];
+	this.rpnstack = null;
 
 	for(var i=0, len=exprs.length; i < len; i++) {
 		expr=exprs[i].toUpperCase();
@@ -189,6 +116,72 @@ RrdRpn.prototype.parser = function (str_expr, gdes)
 	}
 	this.rpnp[steps + 1] = {};
 	this.rpnp[steps + 1].op = RrdRpn.OP_END;
+};
+
+RrdRpn.OP_NUMBER= 0;
+RrdRpn.OP_VARIABLE = 1;
+RrdRpn.OP_INF = 2;
+RrdRpn.OP_PREV = 3;
+RrdRpn.OP_NEGINF = 4;
+RrdRpn.OP_UNKN = 5;
+RrdRpn.OP_NOW = 6;
+RrdRpn.OP_TIME = 7;
+RrdRpn.OP_ADD = 8;
+RrdRpn.OP_MOD = 9;
+RrdRpn.OP_SUB = 10;
+RrdRpn.OP_MUL = 11;
+RrdRpn.OP_DIV = 12;
+RrdRpn.OP_SIN = 13;
+RrdRpn.OP_DUP = 14;
+RrdRpn.OP_EXC = 15;
+RrdRpn.OP_POP = 16;
+RrdRpn.OP_COS = 17;
+RrdRpn.OP_LOG = 18;
+RrdRpn.OP_EXP = 19;
+RrdRpn.OP_LT = 20;
+RrdRpn.OP_LE = 21;
+RrdRpn.OP_GT = 22;
+RrdRpn.OP_GE = 23;
+RrdRpn.OP_EQ = 24;
+RrdRpn.OP_IF = 25;
+RrdRpn.OP_MIN = 26;
+RrdRpn.OP_MAX = 27;
+RrdRpn.OP_LIMIT = 28;
+RrdRpn.OP_FLOOR = 29;
+RrdRpn.OP_CEIL = 30;
+RrdRpn.OP_UN = 31;
+RrdRpn.OP_END = 32;
+RrdRpn.OP_LTIME = 33;
+RrdRpn.OP_NE = 34;
+RrdRpn.OP_ISINF = 35;
+RrdRpn.OP_PREV_OTHER = 36;
+RrdRpn.OP_COUNT = 37;
+RrdRpn.OP_ATAN = 38;
+RrdRpn.OP_SQRT = 39;
+RrdRpn.OP_SORT = 40;
+RrdRpn.OP_REV = 41;
+RrdRpn.OP_TREND = 42;
+RrdRpn.OP_TRENDNAN = 43;
+RrdRpn.OP_ATAN2 = 44;
+RrdRpn.OP_RAD2DEG = 45;
+RrdRpn.OP_DEG2RAD = 46;
+RrdRpn.OP_PREDICT = 47;
+RrdRpn.OP_PREDICTSIGMA = 48;
+RrdRpn.OP_AVG = 49;
+RrdRpn.OP_ABS = 50;
+RrdRpn.OP_ADDNAN = 51 ;
+
+RrdRpn.prototype.find_var = function(gdes, key)
+{
+	for (var ii = 0, gdes_c = gdes.length; ii < gdes_c; ii++) {
+		if ((gdes[ii].gf == RrdGraphDesc.GF_DEF ||
+			gdes[ii].gf == RrdGraphDesc.GF_VDEF ||
+			gdes[ii].gf == RrdGraphDesc.GF_CDEF)
+			&& gdes[ii].vname == key) {
+			return ii;
+		}
+	}
+	return -1;
 };
 
 RrdRpn.prototype.compare_double = function(x, y)

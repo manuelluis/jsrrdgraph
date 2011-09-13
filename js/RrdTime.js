@@ -32,9 +32,132 @@ var RrdTimeError = function (message)
  * RrdTime
  * @constructor
  */
-var RrdTime = function(tspec) 
+var RrdTime = function(tspec) /* parser */
 {
-	this.parser(tspec);
+	var date = new Date();
+	var hr = 0;
+	
+	this.tspec = tspec;
+
+	this.tokens = (tspec+'').match(/[0-9]+|[A-Za-z]+|[:.+-\/]/g);
+	this.toklen = this.tokens.length;
+	this.tokidx = 0;
+
+	this.token = null;
+	this.tokid = 0;
+
+	this.specials = RrdTime.VARIOUSWORDS;
+
+	/* establish the default time reference */
+	this.type = RrdTime.ABSOLUTE_TIME;
+	this.offset = 0;
+	this.tm_sec = date.getSeconds();
+	this.tm_min = date.getMinutes();
+	this.tm_hour = date.getHours();
+	this.tm_mday = date.getDate();
+	this.tm_mon = date.getMonth();
+	this.tm_year = date.getFullYear()-1900;
+	this.tm_wday = date.getDay();
+
+	this.gettok();
+	switch (this.tokid) {
+		case RrdTime.PLUS:
+		case RrdTime.MINUS:
+			break;          /* jump to OFFSET-SPEC part */
+		case RrdTime.EPOCH:
+			this.type = RrdTime.RELATIVE_TO_EPOCH;
+		case RrdTime.START:
+		case RrdTime.END:
+			if (this.tokid === RrdTime.EPOCH)
+				this.type = RrdTime.RELATIVE_TO_START_TIME;
+			else
+			        this.type = RrdTime.RELATIVE_TO_END_TIME;
+			this.tm_sec = 0;
+			this.tm_min = 0;
+			this.tm_hour = 0;
+			this.tm_mday = 0;
+			this.tm_mon = 0;
+			this.tm_year = 0;
+		case RrdTime.NOW:
+			var time_reference = this.tokid;
+			this.gettok();
+			if (this.tokid == RrdTime.PLUS || this.tokid == RrdTime.MINUS)
+				break;
+			if (time_reference != RrdTime.NOW) {
+				throw new RrdTimeError("'start' or 'end' MUST be followed by +|- offset");
+			} else if (this.tokid != RrdTime.EOF) {
+				throw new RrdTimeError("if 'now' is followed by a token it must be +|- offset");
+			}
+			break;
+		case RrdTime.NUMBER: /* Only absolute time specifications below */
+			var hour_sv = this.tm_hour;
+			var year_sv = this.tm_year;
+			this.tm_hour = 30;
+			this.tm_year = 30000;
+			this.tod();
+			this.day();
+			if (this.tm_hour == 30 && this.tm_year != 30000)
+				this.tod();
+			if (this.tm_hour == 30)
+				this.tm_hour = hour_sv;
+			if (this.tm_year == 30000)
+				this.tm_year = year_sv;
+			break;
+		case RrdTime.JAN:
+		case RrdTime.FEB:
+		case RrdTime.MAR:
+		case RrdTime.APR:
+		case RrdTime.MAY:
+		case RrdTime.JUN:
+		case RrdTime.JUL:
+		case RrdTime.AUG:
+		case RrdTime.SEP:
+		case RrdTime.OCT:
+		case RrdTime.NOV:
+		case RrdTime.DEC:
+			this.day();
+			if (this.tokid != RrdTime.NUMBER)
+				break;
+			this.tod();
+			break;
+		case RrdTime.TEATIME:
+			hr += 4;
+		case RrdTime.NOON:
+			hr += 12;
+		case RrdTime.MIDNIGHT:
+			this.tm_hour = hr;
+			this.tm_min = 0;
+			this.tm_sec = 0;
+			this.gettok();
+			this.day();
+			break;
+		default:
+			throw new RrdTimeError("unparsable time: "+this.token+" "+this.sct);
+			break;
+	} /* ugly case statement */
+
+	/*
+	 * the OFFSET-SPEC part
+	 * (NOTE, the sc_tokid was prefetched for us by the previous code)
+	 */
+	if (this.tokid == RrdTime.PLUS || this.tokid == RrdTime.MINUS) {
+		this.specials = RrdTime.TIMEMULTIPLIERS; /* switch special words context */
+		while (this.tokid == RrdTime.PLUS || this.tokid == RrdTime.MINUS || this.tokid == RrdTime.NUMBER) {
+			if (this.tokid == RrdTime.NUMBER) {
+				this.plus_minus(-1);
+			} else {
+				this.plus_minus(this.tokid);
+			}
+			this.gettok();    /* We will get EOF eventually but that's OK, since token() will return us as many EOFs as needed */
+		}
+	}
+
+	/* now we should be at EOF */
+	if (this.tokid != RrdTime.EOF)
+		throw new RrdTimeError("unparsable trailing text: '..."+this.token+"'");
+//	if (this.type == RrdTime.ABSOLUTE_TIME)
+//		if (mktime(&ptv->tm) == -1)  // FIXME ??
+//			panic(e("the specified time is incorrect (out of range?)"));
 };
 
 RrdTime.EOF = -1;
@@ -175,26 +298,6 @@ RrdTime.ABSOLUTE_TIME = 0;
 RrdTime.RELATIVE_TO_START_TIME = 1;
 RrdTime.RELATIVE_TO_END_TIME = 2;
 RrdTime.RELATIVE_TO_EPOCH = 3;
-
-RrdTime.prototype.tspec = null;
-RrdTime.prototype.tokens = null;
-RrdTime.prototype.toklen = 0;
-RrdTime.prototype.tokidx = 0;
-
-RrdTime.prototype.token = null;
-RrdTime.prototype.tokid = 0;
-
-RrdTime.prototype.type = 0;
-RrdTime.prototype.offset = 0;
-RrdTime.prototype.tm_sec = 0;
-RrdTime.prototype.tm_min = 0;
-RrdTime.prototype.tm_hour = 0
-RrdTime.prototype.tm_mday = 0;
-RrdTime.prototype.tm_mon = 0;
-RrdTime.prototype.tm_year = 0;
-RrdTime.prototype.tm_wday = 0;
-
-RrdTime.prototype.specials = null;
 
 RrdTime.prototype.gettok = function () 
 {
@@ -456,131 +559,6 @@ RrdTime.prototype.day = function ()
 		this.assign_date(mday, mon, year);
 		break;
 	}
-};
-
-RrdTime.prototype.parser = function(tspec) 
-{
-	var date = new Date();
-	var hr = 0;
-	
-	this.tspec = tspec;
-
-	this.specials = RrdTime.VARIOUSWORDS;
-	this.tokens = (tspec+'').match(/[0-9]+|[A-Za-z]+|[:.+-\/]/g);
-	this.toklen = this.tokens.length;
-
-	/* establish the default time reference */
-	this.type = RrdTime.ABSOLUTE_TIME;
-	this.offset = 0;
-	this.tm_sec = date.getSeconds();
-	this.tm_min = date.getMinutes();
-	this.tm_hour = date.getHours();
-	this.tm_mday = date.getDate();
-	this.tm_mon = date.getMonth();
-	this.tm_year = date.getFullYear()-1900;
-	this.tm_wday = date.getDay();
-	//thisptv->tm = *localtime(&now);
-
-	this.gettok();
-	switch (this.tokid) {
-		case RrdTime.PLUS:
-		case RrdTime.MINUS:
-			break;          /* jump to OFFSET-SPEC part */
-		case RrdTime.EPOCH:
-			this.type = RrdTime.RELATIVE_TO_EPOCH;
-		case RrdTime.START:
-		case RrdTime.END:
-			if (this.tokid === RrdTime.EPOCH)
-				this.type = RrdTime.RELATIVE_TO_START_TIME;
-			else
-			        this.type = RrdTime.RELATIVE_TO_END_TIME;
-			this.tm_sec = 0;
-			this.tm_min = 0;
-			this.tm_hour = 0;
-			this.tm_mday = 0;
-			this.tm_mon = 0;
-			this.tm_year = 0;
-		case RrdTime.NOW:
-			var time_reference = this.tokid;
-			this.gettok();
-			if (this.tokid == RrdTime.PLUS || this.tokid == RrdTime.MINUS)
-				break;
-			if (time_reference != RrdTime.NOW) {
-				throw new RrdTimeError("'start' or 'end' MUST be followed by +|- offset");
-			} else if (this.tokid != RrdTime.EOF) {
-				throw new RrdTimeError("if 'now' is followed by a token it must be +|- offset");
-			}
-			break;
-		case RrdTime.NUMBER: /* Only absolute time specifications below */
-			var hour_sv = this.tm_hour;
-			var year_sv = this.tm_year;
-			this.tm_hour = 30;
-			this.tm_year = 30000;
-			this.tod();
-			this.day();
-			if (this.tm_hour == 30 && this.tm_year != 30000)
-				this.tod();
-			if (this.tm_hour == 30)
-				this.tm_hour = hour_sv;
-			if (this.tm_year == 30000)
-				this.tm_year = year_sv;
-			break;
-		case RrdTime.JAN:
-		case RrdTime.FEB:
-		case RrdTime.MAR:
-		case RrdTime.APR:
-		case RrdTime.MAY:
-		case RrdTime.JUN:
-		case RrdTime.JUL:
-		case RrdTime.AUG:
-		case RrdTime.SEP:
-		case RrdTime.OCT:
-		case RrdTime.NOV:
-		case RrdTime.DEC:
-			this.day();
-			if (this.tokid != RrdTime.NUMBER)
-				break;
-			this.tod();
-			break;
-		case RrdTime.TEATIME:
-			hr += 4;
-		case RrdTime.NOON:
-			hr += 12;
-		case RrdTime.MIDNIGHT:
-			this.tm_hour = hr;
-			this.tm_min = 0;
-			this.tm_sec = 0;
-			this.gettok();
-			this.day();
-			break;
-		default:
-			throw new RrdTimeError("unparsable time: "+this.token+" "+this.sct);
-			break;
-	} /* ugly case statement */
-
-	/*
-	 * the OFFSET-SPEC part
-	 *
-	 * (NOTE, the sc_tokid was prefetched for us by the previous code)
-	 */
-	if (this.tokid == RrdTime.PLUS || this.tokid == RrdTime.MINUS) {
-		this.specials = RrdTime.TIMEMULTIPLIERS; /* switch special words context */
-		while (this.tokid == RrdTime.PLUS || this.tokid == RrdTime.MINUS || this.tokid == RrdTime.NUMBER) {
-			if (this.tokid == RrdTime.NUMBER) {
-				this.plus_minus(-1);
-			} else {
-				this.plus_minus(this.tokid);
-			}
-			this.gettok();    /* We will get EOF eventually but that's OK, since token() will return us as many EOFs as needed */
-		}
-	}
-
-	/* now we should be at EOF */
-	if (this.tokid != RrdTime.EOF)
-		throw new RrdTimeError("unparsable trailing text: '..."+this.token+"'");
-//	if (this.type == RrdTime.ABSOLUTE_TIME)
-//		if (mktime(&ptv->tm) == -1)  // FIXME ??
-//			panic(e("the specified time is incorrect (out of range?)"));
 };
 
 RrdTime.prototype.localtime = function (tm) 
