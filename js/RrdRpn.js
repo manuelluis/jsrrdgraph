@@ -21,6 +21,10 @@
 
 "use strict";
 
+/**
+ * RrdRpnError
+ * @constructor
+ */
 var RrdRpnError = function (message) 
 {
     this.prototype = Error.prototype;

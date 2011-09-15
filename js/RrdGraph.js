@@ -21,6 +21,10 @@
 
 "use strict";
 
+/**
+ * RrdGraphDescError
+ * @constructor
+ */
 var RrdGraphDescError = function (message)
 {
     this.prototype = Error.prototype;
@@ -381,6 +385,10 @@ RrdGraphDesc.prototype.hrule = function (graph, value, color, legend)
 	else this.legend = '  '+legend;
 };
 
+/**
+ * RrdVdefError
+ * @constructor
+ */
 var RrdVdefError = function (message)
 {
     this.prototype = Error.prototype;
@@ -678,6 +686,10 @@ RrdVdef.prototype.calc = function(src)
 	return 0;
 };
 
+/**
+ * RrdGraphError
+ * @constructor
+ */
 var RrdGraphError = function (message)
 {
     this.prototype = Error.prototype;

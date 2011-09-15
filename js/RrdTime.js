@@ -21,6 +21,10 @@
 
 "use strict";
 
+/**
+ * RrdTimeError
+ * @constructor
+ */
 var RrdTimeError = function (message) 
 {  
     this.prototype = Error.prototype;  

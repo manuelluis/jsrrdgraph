@@ -31,8 +31,104 @@
  * RrdGfxPdf
  * @constructor
  */
-var RrdGfxPdf = function() {
-  this.init.apply(this, arguments);
+var RrdGfxPdf = function (orientation, unit, size)
+{
+	if (orientation === undefined)
+		orientation='P';
+	if (unit === undefined)
+		unit='mm';
+	if (size === undefined)
+		size='A4';
+
+	this.lMargin = 0;            // left margin
+	this.tMargin = 0;            // top margin
+	this.rMargin = 0;            // right margin
+	this.bMargin = 0;            // page break margin
+	this.cMargin = 0;            // cell margin
+
+	this.x = 0;                  // current position in user unit
+	this.y = 0;
+
+	this.ZoomMode = null;          // zoom display mode
+	this.LayoutMode = null;        // layout display mode
+	this.title = null;             // title
+	this.subject = null;           // subject
+	this.author = null;            // author
+	this.keywords = null;          // keywords
+	this.creator = null;           // creator
+
+	// Initialization of properties
+	this.page = 0; // current page number
+	this.offsets = []; // array of object offsets
+	this.n = 2; // current object number
+	this.buffer = ''; // buffer holding in-memory PDF
+	this.pages = []; // array containing pages
+	this.PageSizes = []; // used for pages with non default sizes or orientations
+	this.state = 0; // current document state
+	this.fonts = {}; // array of used fonts
+	this.diffs = []; // array of encoding differences
+	this.FontFamily = ''; // current font family
+	this.FontStyle = ''; // current font style
+	this.FontSizePt = 12; // current font size in points
+	this.FontSize = this.FontSizePt/this.k;
+	this.DrawColor = '0 G'; // commands for drawing color
+	this.FillColor = '0 g'; // commands for filling color
+	this.TextColor = '0 g'; // commands for text color
+	this.ColorFlag = false; // indicates whether fill and text colors are different
+	this.ws = 0; // word spacing
+
+	// Core fonts
+	this.CoreFonts = ['courier', 'helvetica', 'times', 'symbol', 'zapfdingbats'];
+	// Scale factor (number of points in user unit)
+	if(unit === 'pt')
+		this.k = 1; 
+	else if(unit === 'mm')
+		this.k = 72/25.4;
+	else if(unit === 'cm')
+		this.k = 72/2.54;
+	else if(unit === 'in')
+		this.k = 72;
+	else
+		throw 'Incorrect unit: '+unit;
+	// Page sizes
+	this.StdPageSizes = {
+		'a3': [841.89 , 1190.55],
+		'a4': [595.28 , 841.89],
+		'a5': [420.94 , 595.28],
+		'letter': [612 , 792],
+		'legal': [612 , 1008]
+	};
+
+	size = this._getpagesize(size);
+	this.DefPageSize = size;
+	this.CurPageSize = size;
+	// Page orientation
+	orientation = orientation.toLowerCase();
+	if(orientation=='p' || orientation=='portrait') {
+		this.DefOrientation = 'P';
+		this.w = size[0];
+		this.h = size[1];
+	} else if(orientation=='l' || orientation=='landscape') {
+		this.DefOrientation = 'L';
+		this.w = size[1];
+		this.h = size[0];
+	} else {
+		throw 'Incorrect orientation: '+orientation;
+	}
+	this.CurOrientation = this.DefOrientation;
+	this.wPt = this.w*this.k;
+	this.hPt = this.h*this.k;
+	// Page margins (1 cm)
+	var margin = 28.35/this.k;
+	this.SetMargins(margin,margin);
+	// Interior cell margin (1 mm)
+	this.cMargin = margin/10;
+	// Line width (0.2 mm)
+	this.LineWidth = .567/this.k;
+	// Default display mode
+	this.SetDisplayMode('default');
+	// Set default PDF version number
+	this.PDFVersion = '1.3';
 };
 
 RrdGfxPdf.CORE_FONTS= {
@@ -52,946 +148,867 @@ RrdGfxPdf.CORE_FONTS= {
 	'zapfdingbats': {name: 'ZapfDingbats', up: -100, ut: 50, cw: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,278,974,961,974,980,719,789,790,791,690,960,939, 549,855,911,933,911,945,974,755,846,762,761,571,677,763,760,759,754,494,552,537,577,692, 786,788,788,790,793,794,816,823,789,841,823,833,816,831,923,744,723,749,790,792,695,776, 768,792,759,707,708,682,701,826,815,789,789,707,687,696,689,786,787,713,791,785,791,873, 761,762,762,759,759,892,892,788,784,438,138,277,415,392,392,668,668,0,390,390,317,317, 276,276,509,509,410,410,234,234,334,334,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,732,544,544,910,667,760,760,776,595,694,626,788,788,788,788, 788,788,788,788,788,788,788,788,788,788,788,788,788,788,788,788,788,788,788,788,788,788, 788,788,788,788,788,788,788,788,788,788,788,788,788,788,894,838,1016,458,748,924,748,918, 927,928,928,834,873,828,924,924,917,930,931,463,883,836,836,867,867,696,696,874,0,874, 760,946,771,865,771,888,967,888,831,873,927,970,918,0] }
 };
 
-RrdGfxPdf.prototype = {
-	page: null,               // current page number
-	n: null,                  // current object number
-	offsets: null,            // array of object offsets
-	buffer: null,             // buffer holding in-memory PDF
-	pages: null,              // array containing pages
-	state: null,              // current document state
-	k: null,                  // scale factor (number of points in user unit)
-	DefOrientation: null,     // default orientation
-	CurOrientation: null,     // current orientation
-	StdPageSizes: null,       // standard page sizes
-	DefPageSize: null,        // default page size
-	CurPageSize: null,        // current page size
-	PageSizes: null,          // used for pages with non default sizes or orientations
-	wPt: null,                // dimensions of current page in points
-	hPt: null,
-	w: null,                  // dimensions of current page in user unit
-	h: null,
-	lMargin: null,            // left margin
-	tMargin: null,            // top margin
-	rMargin: null,            // right margin
-	bMargin: null,            // page break margin
-	cMargin: null,            // cell margin
-	x: null,                  // current position in user unit
-	y: null,
-	lasth: null,              // height of last printed cell
-	LineWidth: null,          // line width in user unit
-	CoreFonts: null,          // array of core font names
-	fonts: null,              // array of used fonts
-	diffs: null,              // array of encoding differences
-	FontFamily: null,         // current font family
-	FontStyle: null,          // current font style
-	CurrentFont: null,        // current font info
-	FontSizePt: null,         // current font size in points
-	FontSize: null,           // current font size in user unit
-	DrawColor: null,          // commands for drawing color
-	FillColor: null,          // commands for filling color
-	TextColor: null,          // commands for text color
-	ColorFlag: null,          // indicates whether fill and text colors are different
-	ws: null,                 // word spacing
-	ZoomMode: null,           // zoom display mode
-	LayoutMode: null,         // layout display mode
-	title: null,              // title
-	subject: null,            // subject
-	author: null,             // author
-	keywords: null,           // keywords
-	creator: null,            // creator
-	PDFVersion: null,         // PDF version number
+RrdGfxPdf.prototype.parse_color = function(str)
+{
+  var bits;
+  if ((bits = /^#?([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/.exec(str))) {
+    return [parseInt(bits[1]+bits[1], 16), parseInt(bits[2]+bits[2], 16), parseInt(bits[3]+bits[3], 16), 1.0];
+  } else if ((bits = /^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/.exec(str))) {
+    return [parseInt(bits[1], 16), parseInt(bits[2], 16), parseInt(bits[3], 16), 1.0];
+  } else if ((bits = /^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/.exec(str))) {
+    return [parseInt(bits[1], 16), parseInt(bits[2], 16), parseInt(bits[3], 16), parseInt(bits[4], 16)/255];
+  } else if ((bits = /^rgb\((\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\)$/.exec(str))) {
+    return [parseInt(bits[1], 10), parseInt(bits[2], 10), parseInt(bits[3], 10), 1.0];
+  } else if ((bits = /^rgba\((\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*([0-9.]+)\)$/.exec(str))) {
+    return [parseInt(bits[1], 10), parseInt(bits[2], 10), parseInt(bits[3], 10), parseFloat(bits[4], 10)];
+  } else {
+    throw "Unknow color format '"+str+"'";
+  }
+};
 
-/////
-	parse_color: function(str)
-  {
-    var bits;
-    if ((bits = /^#?([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/.exec(str))) {
-      return [parseInt(bits[1]+bits[1], 16), parseInt(bits[2]+bits[2], 16), parseInt(bits[3]+bits[3], 16), 1.0];
-    } else if ((bits = /^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/.exec(str))) {
-      return [parseInt(bits[1], 16), parseInt(bits[2], 16), parseInt(bits[3], 16), 1.0];
-    } else if ((bits = /^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/.exec(str))) {
-      return [parseInt(bits[1], 16), parseInt(bits[2], 16), parseInt(bits[3], 16), parseInt(bits[4], 16)/255];
-    } else if ((bits = /^rgb\((\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\)$/.exec(str))) {
-      return [parseInt(bits[1], 10), parseInt(bits[2], 10), parseInt(bits[3], 10), 1.0];
-    } else if ((bits = /^rgba\((\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*([0-9.]+)\)$/.exec(str))) {
-      return [parseInt(bits[1], 10), parseInt(bits[2], 10), parseInt(bits[3], 10), parseFloat(bits[4], 10)];
-    } else {
-      throw "Unknow color format '"+str+"'";
-    }
-  },
-	size: function (width, height)
-	{
-		var size = [height, width];
-		this.DefPageSize = size;
-		this.CurPageSize = size;
-		this.DefOrientation = 'L';
-		this.w = size[1];
-		this.h = size[0];
-		this.CurOrientation = this.DefOrientation;
-		this.wPt = this.w*this.k;
-		this.hPt = this.h*this.k;
-		this.AddPage();
-	},
-  set_dash: function (dashes, n, offset)
-  {
-  },
-	line: function (X0, Y0, X1, Y1, width, color)
-	{
-		this._save();
-		this._setLineWidth(width);
-		var rgba = this.parse_color(color);
-		this._setDrawColor(rgba[0], rgba[1], rgba[2]);
-		this._moveTo(X0, Y0);
-		this._lineTo(X1, Y1);
-		this._stroke();
-		this._restore();
-	},
-	dashed_line: function (X0, Y0, X1, Y1, width, color, dash_on, dash_off)
-	{
-		this._save();
-		this._setLineWidth(width);
-		var rgba = this.parse_color(color);
-		this._setDrawColor(rgba[0], rgba[1], rgba[2]);
-		this._out('['+(dash_on*this.k)+' '+(dash_off*this.k)+'] 0 d');
-		this._moveTo(X0, Y0);
-		this._lineTo(X1, Y1);
-		this._stroke();
-		this._restore();
-	},
-	rectangle: function (X0, Y0, X1, Y1, width, style)
-	{
-		this._save();
-		this._setLineWidth(width);
-		var rgba = this.parse_color(style);
-		this._setDrawColor(rgba[0], rgba[1], rgba[2]);
-		this._moveTo(X0, Y0);
-		this._lineTo(X1, Y0);
-		this._lineTo(X1, Y1);
-		this._lineTo(X0, Y1);
-		this._closePath();
-		this._stroke();
-		this._restore();
-	},
-	new_area: function (X0, Y0, X1, Y1, X2, Y2, color)
-	{
-		var rgba = this.parse_color(color);
-		this._setFillColor(rgba[0], rgba[1], rgba[2]);
-		this._moveTo(X0, Y0);
-		this._lineTo(X1, Y1);
-		this._lineTo(X2, Y2);
-	},
-	add_point: function (x, y)
-	{
-		this._lineTo(x, y);
-	},
-	close_path: function ()
-	{
-		this._closePath();
-		this._fill();
-	},
-	stroke_begin: function (width, style)
-	{
-		this._save();
-		this._setLineWidth(width);
-		var rgba = this.parse_color(style);
-		this._setDrawColor(rgba[0], rgba[1], rgba[2]);
-		this._out('0 J');  // line cap
-		this._out('0 j');  // line join
-	},
-	stroke_end: function ()
-	{
-		this._stroke();
-		this._restore();
-	},
-	moveTo: function (x,y)
-	{
-		this._moveTo(x, y);
-	},
-	lineTo: function (x,y)
-	{
-		this._lineTo(x, y)
-	},
-	text: function (x, y, color, font, tabwidth, angle, h_align, v_align, text)
-	{
-		this._save();
-		this._setFont('courier', '', font.size*this.k);
+RrdGfxPdf.prototype.size = function (width, height)
+{
+	var size = [height, width];
+	this.DefPageSize = size;
+	this.CurPageSize = size;
+	this.DefOrientation = 'L';
+	this.w = size[1];
+	this.h = size[0];
+	this.CurOrientation = this.DefOrientation;
+	this.wPt = this.w*this.k;
+	this.hPt = this.h*this.k;
+	this.AddPage();
+};
 
-		var width = this._getStringWidth('courier', '', font.size*this.k, text);
-		var height = font.size;
+RrdGfxPdf.prototype.set_dash = function (dashes, n, offset)
+{
+};
+
+RrdGfxPdf.prototype.line = function (X0, Y0, X1, Y1, width, color)
+{
+	this._save();
+	this._setLineWidth(width);
+	var rgba = this.parse_color(color);
+	this._setDrawColor(rgba[0], rgba[1], rgba[2]);
+	this._moveTo(X0, Y0);
+	this._lineTo(X1, Y1);
+	this._stroke();
+	this._restore();
+};
+
+RrdGfxPdf.prototype.dashed_line = function (X0, Y0, X1, Y1, width, color, dash_on, dash_off)
+{
+	this._save();
+	this._setLineWidth(width);
+	var rgba = this.parse_color(color);
+	this._setDrawColor(rgba[0], rgba[1], rgba[2]);
+	this._out('['+(dash_on*this.k)+' '+(dash_off*this.k)+'] 0 d');
+	this._moveTo(X0, Y0);
+	this._lineTo(X1, Y1);
+	this._stroke();
+	this._restore();
+};
+
+RrdGfxPdf.prototype.rectangle = function (X0, Y0, X1, Y1, width, style)
+{
+	this._save();
+	this._setLineWidth(width);
+	var rgba = this.parse_color(style);
+	this._setDrawColor(rgba[0], rgba[1], rgba[2]);
+	this._moveTo(X0, Y0);
+	this._lineTo(X1, Y0);
+	this._lineTo(X1, Y1);
+	this._lineTo(X0, Y1);
+	this._closePath();
+	this._stroke();
+	this._restore();
+};
+
+RrdGfxPdf.prototype.new_area = function (X0, Y0, X1, Y1, X2, Y2, color)
+{
+	var rgba = this.parse_color(color);
+	this._setFillColor(rgba[0], rgba[1], rgba[2]);
+	this._moveTo(X0, Y0);
+	this._lineTo(X1, Y1);
+	this._lineTo(X2, Y2);
+};
+
+RrdGfxPdf.prototype.add_point = function (x, y)
+{
+	this._lineTo(x, y);
+};
+
+RrdGfxPdf.prototype.close_path = function ()
+{
+	this._closePath();
+	this._fill();
+};
+
+RrdGfxPdf.prototype.stroke_begin = function (width, style)
+{
+	this._save();
+	this._setLineWidth(width);
+	var rgba = this.parse_color(style);
+	this._setDrawColor(rgba[0], rgba[1], rgba[2]);
+	this._out('0 J');  // line cap
+	this._out('0 j');  // line join
+};
+
+RrdGfxPdf.prototype.stroke_end = function ()
+{
+	this._stroke();
+	this._restore();
+};
+
+RrdGfxPdf.prototype.moveTo = function (x,y)
+{
+	this._moveTo(x, y);
+};
+
+RrdGfxPdf.prototype.lineTo = function (x,y)
+{
+	this._lineTo(x, y)
+};
+
+RrdGfxPdf.prototype.text = function (x, y, color, font, tabwidth, angle, h_align, v_align, text)
+{
+	this._save();
+	this._setFont('courier', '', font.size*this.k);
+
+	var width = this._getStringWidth('courier', '', font.size*this.k, text);
+	var height = font.size;
 /*
-		this._moveTo(x,y-5); this._lineTo(x,y+5);
-		this._moveTo(x-5,y); this._lineTo(x+5,y);
-		this._moveTo(x+width,y-height-5); this._lineTo(x+width,y-height+5);
-		this._moveTo(x+width-5,y-height); this._lineTo(x+width+5,y-height);
-		this._stroke();
+	this._moveTo(x,y-5); this._lineTo(x,y+5);
+	this._moveTo(x-5,y); this._lineTo(x+5,y);
+	this._moveTo(x+width,y-height-5); this._lineTo(x+width,y-height+5);
+	this._moveTo(x+width-5,y-height); this._lineTo(x+width+5,y-height);
+	this._stroke();
 */
-		switch (h_align) {
-			case RrdGraph.GFX_H_LEFT:
-//				console.log("LEFT x: "+x+" width: "+width+" ("+text+")");
-				if (angle == -90) {
-					x = x-height/2;
-				}
-				break;
-			case RrdGraph.GFX_H_RIGHT:
-//				console.log("RIGHT "+x+" width: "+width+" ("+text+")");
-				x = x-width;
-				break;
-			case RrdGraph.GFX_H_CENTER:
-//				console.log("CENTER x: "+x+" width: "+width+" ("+text+")");
-				if (angle != 90) {
-					x = x-width/2;
-				}
-				break;
-		}
-
-		switch (v_align) {
-			case RrdGraph.GFX_V_TOP:
-//				console.log("TOP y: "+y+" h: "+height+" ("+text+")");
-				if (angle != -90) {
-					y = y + height/2;
-				}
-				break;
-			case RrdGraph.GFX_V_BOTTOM:
-//				console.log("BOTTOM y: "+y+" h: "+height+" ("+text+")");
-				y = y - height/3;
-				break;
-			case RrdGraph.GFX_V_CENTER:
-//				console.log("CENTER y: "+y+" h: "+height+" ("+text+")");
-				if (angle == 90) {
-					y = y + width/2;
- 				} else {
-					y = y + height/4;
-				}
-				break;
-		}
-
-		x = x*this.k;
-		y = (this.h-y)*this.k
-
-		var tm = [];
-		tm[0] = Math.cos(angle*Math.PI/180.0);
-    tm[1] = Math.sin(angle*Math.PI/180.0);
-    tm[2] = -tm[1];
-    tm[3] = tm[0];
-
-    tm[4] = x + (tm[1] * y) - (tm[0] * x);
-    tm[5] = y - (tm[0] * y) - (tm[1] * x);
-
-		var rgba = this.parse_color(color);
-		this._save();
-		this._out('BT');
-		this._out(sprintf('%.3F %.3F %.3F rg', rgba[0]/255,rgba[1]/255,rgba[2]/255));
-		this._out(sprintf('%.2F %.2F Td', x, y));
-		this._out(sprintf('%.3F %.3F %.3F %.3F %.3F %.3F cm', tm[0], tm[1], tm[2], tm[3], tm[4], tm[5]));
-		this._out(sprintf('(%s) Tj',this._escape(text)));
-		this._out('ET');
-		this._restore();
-	},
-	get_text_width: function(start, font, tabwidth, text)
-	{
-		var width = this._getStringWidth('courier', '', font.size*this.k, text);
-		return width;
-	},
-/*******************************************************************************
-*                                                                              *
-*                               Public methods                                 *
-*                                                                              *
-*******************************************************************************/
-	init: function (orientation, unit, size)
-	{
-		if (orientation === undefined)
-			orientation='P';
-		if (unit === undefined)
-			unit='mm';
-		if (size === undefined)
-			size='A4';
-
-		// Initialization of properties
-		this.page = 0;
-		this.offsets = [];
-		this.n = 2;
-		this.buffer = '';
-		this.pages = [];
-		this.PageSizes = [];
-		this.state = 0;
-		this.fonts = {};
-		this.diffs = [];
-		this.lasth = 0;
-		this.FontFamily = '';
-		this.FontStyle = '';
-		this.FontSizePt = 12;
-		this.DrawColor = '0 G';
-		this.FillColor = '0 g';
-		this.TextColor = '0 g';
-		this.ColorFlag = false;
-		this.ws = 0;
-
-		// Core fonts
-		this.CoreFonts = ['courier', 'helvetica', 'times', 'symbol', 'zapfdingbats'];
-		// Scale factor
-		if(unit === 'pt')
-			this.k = 1;
-		else if(unit === 'mm')
-			this.k = 72/25.4;
-		else if(unit === 'cm')
-			this.k = 72/2.54;
-		else if(unit === 'in')
-			this.k = 72;
-		else
-			throw 'Incorrect unit: '+unit;
-		// Page sizes
-		this.StdPageSizes = {
-			'a3': [841.89 , 1190.55],
-			'a4': [595.28 , 841.89],
-			'a5': [420.94 , 595.28],
-			'letter': [612 , 792],
-			'legal': [612 , 1008]
-		};
-
-		size = this._getpagesize(size);
-		this.DefPageSize = size;
-		this.CurPageSize = size;
-		// Page orientation
-		orientation = orientation.toLowerCase();
-		if(orientation=='p' || orientation=='portrait') {
-			this.DefOrientation = 'P';
-			this.w = size[0];
-			this.h = size[1];
-		} else if(orientation=='l' || orientation=='landscape') {
-			this.DefOrientation = 'L';
-			this.w = size[1];
-			this.h = size[0];
-		} else {
-			throw 'Incorrect orientation: '+orientation;
-		}
-		this.CurOrientation = this.DefOrientation;
-		this.wPt = this.w*this.k;
-		this.hPt = this.h*this.k;
-		// Page margins (1 cm)
-		var margin = 28.35/this.k;
-		this.SetMargins(margin,margin);
-		// Interior cell margin (1 mm)
-		this.cMargin = margin/10;
-		// Line width (0.2 mm)
-		this.LineWidth = .567/this.k;
-		// Default display mode
-		this.SetDisplayMode('default');
-		// Set default PDF version number
-		this.PDFVersion = '1.3';
-	},
-	SetMargins: function(left, top, right)
-	{
-		if (right === undefined)
-			right = null;
-		// Set left, top and right margins
-		this.lMargin = left;
-		this.tMargin = top;
-		if(right===null)
-			right = left;
-		this.rMargin = right;
-	},
-	SetLeftMargin: function(margin)
-	{
-		// Set left margin
-		this.lMargin = margin;
-		if(this.page>0 && this.x<margin)
-			this.x = margin;
-	},
-	SetTopMargin: function(margin)
-	{
-		// Set top margin
-		this.tMargin = margin;
-	},
-	SetRightMargin: function(margin)
-	{
-		// Set right margin
-		this.rMargin = margin;
-	},
-	SetDisplayMode: function(zoom, layout)
-	{
-		// Set display mode in viewer
-		if(zoom === 'fullpage' || zoom === 'fullwidth' || zoom === 'real' || zoom == 'default' || !(typeof zoom === "string"))
-			this.ZoomMode = zoom;
-		else
-			throw 'Incorrect zoom display mode: '+zoom;
-
-		if(layout === undefined) {
-			this.LayoutMode = 'default';
-		} else if(layout === 'single' || layout === 'continuous' || layout === 'two' || layout === 'default') {
-			this.LayoutMode = layout;
-		} else {
-			throw 'Incorrect layout display mode: '+layout;
-		}
-	},
-	SetTitle: function(title)
-	{
-		// Title of document
-		this.title = title;
-	},
-	SetSubject: function(subject)
-	{
-		// Subject of document
-		this.subject = subject;
-	},
-	SetAuthor: function(author)
-	{
-		// Author of document
-		this.author = author;
-	},
-	SetKeywords: function(keywords)
-	{
-		// Keywords of document
-		this.keywords = keywords;
-	},
-	SetCreator: function(creator)
-	{
-		// Creator of document
-		this.creator = creator;
-	},
-	Open: function()
-	{
-		// Begin document
-		this.state = 1;
-	},
-	Close: function()
-	{
-		// Terminate document
-		if(this.state==3)
-			return;
-		if(this.page==0)
-			this.AddPage();
-		// Close page
-		this._endpage();
-		// Close document
-		this._enddoc();
-	},
-	AddPage: function(orientation, size)
-	{
-		if (orientation === undefined) orientation='';
-		if (size === undefined) size='';
-
-		// Start a new page
-		if(this.state==0)
-			this.Open();
-
-		var family = this.FontFamily;
-		var style = this.FontStyle;
-		var fontsize = this.FontSizePt;
-		var lw = this.LineWidth;
-		var dc = this.DrawColor;
-		var fc = this.FillColor;
-		var tc = this.TextColor;
-		var cf = this.ColorFlag;
-
-		if(this.page>0)
-		{
-			// Close page
-			this._endpage();
-		}
-		// Start new page
-		this._beginpage(orientation,size);
-		// Set line cap style to square
-		this._out('2 J');
-		// Set line width
-		this.LineWidth = lw;
-		this._out(sprintf('%.2F w',lw*this.k));
-		// Set font
-		if(family)
-			this._setFont(family,style,fontsize);
-		// Set colors
-		this.DrawColor = dc;
-		if(dc!='0 G')
-			this._out(dc);
-		this.FillColor = fc;
-		if(fc!='0 g')
-			this._out(fc);
-		this.TextColor = tc;
-		this.ColorFlag = cf;
-		// Restore line width
-		if(this.LineWidth!=lw)
-		{
-			this.LineWidth = lw;
-			this._out(sprintf('%.2F w',lw*this.k));
-		}
-		// Restore font
-		if(family)
-			this._setFont(family,style,fontsize);
-		// Restore colors
-		if(this.DrawColor!=dc)
-		{
-			this.DrawColor = dc;
-			this._out(dc);
-		}
-		if(this.FillColor!=fc)
-		{
-			this.FillColor = fc;
-			this._out(fc);
-		}
-		this.TextColor = tc;
-		this.ColorFlag = cf;
-	},
-	PageNo: function()
-	{
-		// Get current page number
-		return this.page;
-	},
-	_setDrawColor: function(r, g, b)
-	{
-		if (g === undefined) g=null;
-		if (b === undefined) b=null;
-		// Set color for all stroking operations
-		if((r==0 && g==0 && b==0) || g===null)
-			this.DrawColor = sprintf('%.3F G',r/255);
-		else
-			this.DrawColor = sprintf('%.3F %.3F %.3F RG',r/255,g/255,b/255);
-		if(this.page>0)
-			this._out(this.DrawColor);
-	},
-	_setFillColor: function(r, g, b)
-	{
-		if (g === undefined) g=null;
-		if (b === undefined) b=null;
-		// Set color for all filling operations
-		if((r==0 && g==0 && b==0) || g===null)
-			this.FillColor = sprintf('%.3F g',r/255);
-		else
-			this.FillColor = sprintf('%.3F %.3F %.3F rg',r/255,g/255,b/255);
-		this.ColorFlag = (this.FillColor!=this.TextColor);
-		if(this.page>0)
-			this._out(this.FillColor);
-	},
-	_setTextColor: function(r, g, b)
-	{
-		if (g === undefined) g=null;
-		if (b === undefined) b=null;
-		// Set color for text
-		if((r==0 && g==0 && b==0) || g===null)
-			this.TextColor = sprintf('%.3F g',r/255);
-		else
-			this.TextColor = sprintf('%.3F %.3F %.3F rg',r/255,g/255,b/255);
-		this.ColorFlag = (this.FillColor!=this.TextColor);
-	},
-	_getStringWidth: function(family, style, size, s)
-	{
-		if (style === undefined) style = '';
-		if (size === undefined) size = 0;
-		// Select a font; size given in points
-
-		if(family=='') family = this.FontFamily;
-		else family = family.toLowerCase();
-
-		style = style.toUpperCase();
-		if(style=='IB') style = 'BI';
-
-		if(size==0) size = this.FontSizePt;
-
-		// Test if font is already loaded
-		var fontkey = family+style;
-		if(!(fontkey in this.fonts)) {
-			// Test if one of the core fonts
-			if(family=='arial') family = 'helvetica';
-			if(family=='symbol' || family=='zapfdingbats') style = '';
-			fontkey = family+style;
-
-			if (!(fontkey in this.fonts))
-				this.AddFont(family, style);
-		}
-		// Select it
-		size = size/this.k;
-		var cw = this.fonts[fontkey].cw;
-		var w = 0;
-		var l = s.length;
-		for(var i=0; i<l; i++) {
-			w += cw[s.charCodeAt(i)];
-		}
-		return w*size/1000;
-	},
-	_setLineWidth: function(width)
-	{
-		// Set line width
-		this.LineWidth = width;
-		if(this.page>0)
-			this._out(sprintf('%.2F w',width*this.k));
-	},
-	_moveTo: function(x, y)
-	{
-		this._out(sprintf('%.2F %.2F m',x*this.k,(this.h-y)*this.k));
-	},
-	_lineTo: function(x, y)
-	{
-		this._out(sprintf('%.2F %.2F l',x*this.k,(this.h-y)*this.k));
-	},
-	_stroke: function()
-	{
-		this._out('S');
-	},
-	_save: function()
-	{
-		this._out('q');
-	},
-	_restore: function()
-	{
-		this._out('Q');
-	},
-	_closePath: function()
-	{
-		this._out('h');
-	},
-	_fill: function()
-	{
-		this._out('f');
-	},
-	_line: function(x1, y1, x2, y2)
-	{
-		// Draw a line
-		this._out(sprintf('%.2F %.2F m %.2F %.2F l S',x1*this.k,(this.h-y1)*this.k,x2*this.k,(this.h-y2)*this.k));
-	},
-	_rect: function(x, y, w, h, style)
-	{
-		var op;
-		// Draw a rectangle
-		if(style=='F')
-			op = 'f';
-		else if(style=='FD' || style=='DF')
-			op = 'B';
-		else
-			op = 'S';
-		this._out(sprintf('%.2F %.2F %.2F %.2F re %s',x*this.k,(this.h-y)*this.k,w*this.k,-h*this.k,op));
-	},
-	AddFont: function (family, style, file)
-	{
-		if (style === undefined) style = '';
-
-		if(family=='') family = this.FontFamily;
-		else family = family.toLowerCase();
-
-		style = style.toUpperCase();
-		if(style=='IB') style = 'BI';
-
-		var fontkey = family+style;
-		if(fontkey in this.fonts)
-			return;
-
-		if(fontkey in RrdGfxPdf.CORE_FONTS){
-			var font = RrdGfxPdf.CORE_FONTS[fontkey];
-			this.fonts[fontkey] = font;
-			var i=0;
-			for (var n in this.fonts) i++;
-			font['i'] = i;
-		} else {
-			throw 'Undefined font: '+family+' '+style;
-		}
-	},
-	_setFont: function(family, style, size)
-	{
-		if (style === undefined) style = '';
-		if (size === undefined) size = 0;
-		// Select a font; size given in points
-
-		if(family=='') family = this.FontFamily;
-		else family = family.toLowerCase();
-
-		style = style.toUpperCase();
-		if(style=='IB') style = 'BI';
-
-		if(size==0) size = this.FontSizePt;
-
-		// Test if font is already selected
-		//if(this.FontFamily==family && this.FontStyle==style && this.FontSizePt==size)
-		//	return;
-
-		// Test if font is already loaded
-		var fontkey = family+style;
-		if(!(fontkey in this.fonts)) {
-			// Test if one of the core fonts
-			if(family=='arial') family = 'helvetica';
-			if(family=='symbol' || family=='zapfdingbats') style = '';
-			fontkey = family+style;
-
-			if (!(fontkey in this.fonts))
-				this.AddFont(family, style);
-		}
-		// Select it
-		this.FontFamily = family;
-		this.FontStyle = style;
-		this.FontSizePt = size;
-		this.FontSize = size/this.k;
-		this.CurrentFont = this.fonts[fontkey];
-		if(this.page>0)
-			this._out(sprintf('BT /F%d %.2F Tf ET',this.CurrentFont['i'],this.FontSizePt)); // FIXME i
-	},
-	_setFontSize: function(size)
-	{
-		// Set font size in points
-		//if(this.FontSizePt==size)
-		//	return;
-		this.FontSizePt = size;
-		this.FontSize = size/this.k;
-		if(this.page>0)
-			this._out(sprintf('BT /F%d %.2F Tf ET',this.CurrentFont['i'],this.FontSizePt));
-	},
-	_text: function(x, y, txt)
-	{
-		// Output a string
-		var s = sprintf('BT %.2F %.2F Td (%s) Tj ET',x*this.k,(this.h-y)*this.k,this._escape(txt));
-		if(this.ColorFlag)
-			s = 'q '+this.TextColor+' '+s+' Q';
-		this._out(s);
-	},
-	output: function()
-	{
-		// Output PDF to some destination
-		if(this.state<3)
-			this.Close();
-		document.location.href = 'data:application/pdf;base64,' + Base64.encode(this.buffer);
-		//return this.buffer;
-	},
-	_getpagesize: function(size) // FIXME
-	{
-		if(typeof size === "string" ) {
-			size = size.toLowerCase();
-			if(!(size in this.StdPageSizes))
-				throw 'Unknown page size: '+size;
-			var a = this.StdPageSizes[size];
-			return [a[0]/this.k, a[1]/this.k];
-		} else {
-			if(size[0]>size[1]) {
-				return [size[1], size[0]];
-			} else {
-				return size;
+	switch (h_align) {
+		case RrdGraph.GFX_H_LEFT:
+			if (angle == -90) {
+				x = x-height/2;
 			}
-		}
-	},
-	_beginpage: function(orientation, size)
-	{
-		this.page++;
-		this.pages[this.page] = '';
-		this.state = 2;
-		this.x = this.lMargin;
-		this.y = this.tMargin;
-		this.FontFamily = '';
-		// Check page size and orientation
-		if(orientation=='') orientation = this.DefOrientation;
-		else orientation = strtoupper(orientation[0]);
-
-		if(size=='') size = this.DefPageSize;
-		else size = this._getpagesize(size);
-
-		if(orientation!=this.CurOrientation || size[0]!=this.CurPageSize[0] || size[1]!=this.CurPageSize[1])
-		{
-			// New size or orientation
-			if(orientation=='P') {
-				this.w = size[0];
-				this.h = size[1];
-			} else {
-				this.w = size[1];
-				this.h = size[0];
+			break;
+		case RrdGraph.GFX_H_RIGHT:
+			x = x-width;
+			break;
+		case RrdGraph.GFX_H_CENTER:
+			if (angle != 90) {
+				x = x-width/2;
 			}
-			this.wPt = this.w*this.k;
-			this.hPt = this.h*this.k;
-			this.CurOrientation = orientation;
-			this.CurPageSize = size;
-		}
-		if(orientation!=this.DefOrientation || size[0]!=this.DefPageSize[0] || size[1]!=this.DefPageSize[1])
-			this.PageSizes[this.page] = [this.wPt, this.hPt];
-	},
-	_endpage: function()
-	{
-		this.state = 1;
-	},
-	_escape: function(s) // FIXME
-	{
-		// Escape special characters in strings
-		//s = str_replace('\\','\\\\',s);
-		//s = str_replace('(','\\(',s);
-		//s = str_replace(')','\\)',s);
-		//s = str_replace("\r",'\\r',s);
-		return s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
-	},
-	_textstring: function(s)
-	{
-		// Format a text string
-		return '('+this._escape(s)+')';
-	},
-	_newobj: function()
-	{
-		// Begin a new object
-		this.n++;
-		this.offsets[this.n] = this.buffer.length;
-		this._out(this.n+' 0 obj');
-	},
-	_putstream: function(s)
-	{
-		this._out('stream');
-		this._out(s);
-		this._out('endstream');
-	},
-	_out: function(s)
-	{
-	// Add a line to the document
-		if(this.state==2)
-			this.pages[this.page] += s+"\n";
-		else
-			this.buffer += s+"\n";
-	},
-	_putpages: function()
-	{
-		var wPt, hPt;
-		var nb = this.page;
-		if(this.DefOrientation=='P') {
-			wPt = this.DefPageSize[0]*this.k;
-			hPt = this.DefPageSize[1]*this.k;
-		} else {
-			wPt = this.DefPageSize[1]*this.k;
-			hPt = this.DefPageSize[0]*this.k;
-		}
-		for(var n=1;n<=nb;n++)
-		{
-			// Page
-			this._newobj();
-			this._out('<</Type /Page');
-			this._out('/Parent 1 0 R');
-			if(this.PageSizes[n] !== undefined)
-				this._out(sprintf('/MediaBox [0 0 %.2F %.2F]',this.PageSizes[n][0],this.PageSizes[n][1]));
-			this._out('/Resources 2 0 R');
-			if(this.PDFVersion>'1.3')
-				this._out('/Group <</Type /Group /S /Transparency /CS /DeviceRGB>>');
-			this._out('/Contents '+(this.n+1)+' 0 R>>');
-			this._out('endobj');
-			// Page content
-			this._newobj();
-			this._out('<</Length '+this.pages[n].length+'>>');
-			this._putstream(this.pages[n]);
-			this._out('endobj');
-		}
-		// Pages root
-		this.offsets[1] = this.buffer.length;
-		this._out('1 0 obj');
-		this._out('<</Type /Pages');
-		var kids = '/Kids [';
-		for(var i=0;i<nb;i++)
-			kids += (3+2*i)+' 0 R ';
-		this._out(kids+']');
-		this._out('/Count '+nb);
-		this._out(sprintf('/MediaBox [0 0 %.2F %.2F]',wPt,hPt));
-		this._out('>>');
-		this._out('endobj');
-	},
-	_putfonts: function()
-	{
-		var nf = this.n;
-		for(var diff in this.diffs) {
-			// Encodings
-			this._newobj();
-			this._out('<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences ['+diff+']>>');
-			this._out('endobj');
-		}
-		for(var font in this.fonts) { // FIXME
-			// Font objects
-			this.fonts[font]['n'] = this.n+1;
-			var name = this.fonts[font]['name'];
-			// Core font
-			this._newobj();
-			this._out('<</Type /Font');
-			this._out('/BaseFont /'+name);
-			this._out('/Subtype /Type1');
-			if(name!='Symbol' && name!='ZapfDingbats')
-				this._out('/Encoding /WinAnsiEncoding');
-			this._out('>>');
-			this._out('endobj');
-		}
-	},
-	_putresourcedict: function()
-	{
-		this._out('/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]');
-		this._out('/Font <<');
-		for(var font in this.fonts)
-			this._out('/F'+this.fonts[font]['i']+' '+this.fonts[font]['n']+' 0 R');
-		this._out('>>');
-		this._out('/XObject <<');
-		this._out('>>');
-	},
-	_putresources: function()
-	{
-		this._putfonts();
-		// Resource dictionary
-		this.offsets[2] = this.buffer.length;
-		this._out('2 0 obj');
-		this._out('<<');
-		this._putresourcedict();
-		this._out('>>');
-		this._out('endobj');
-	},
-	_putinfo: function()
-	{
-		// this._out('/Producer '+this._textstring('FPDF '+FPDF_VERSION)); FIXME
-		if(this.title != null)
-			this._out('/Title '+this._textstring(this.title));
-		if(this.subject != null)
-			this._out('/Subject '+this._textstring(this.subject));
-		if(this.author != null)
-			this._out('/Author '+this._textstring(this.author));
-		if(this.keywords != null)
-			this._out('/Keywords '+this._textstring(this.keywords));
-		if(this.creator != null)
-			this._out('/Creator '+this._textstring(this.creator));
-		// this._out('/CreationDate '+this._textstring('D:'+date('YmdHis'))); // FIXME
-	},
-	_putcatalog: function()
-	{
-		this._out('/Type /Catalog');
-		this._out('/Pages 1 0 R');
+			break;
+	}
 
-		if(this.ZoomMode=='fullpage')
-			this._out('/OpenAction [3 0 R /Fit]');
-		else if(this.ZoomMode=='fullwidth')
-			this._out('/OpenAction [3 0 R /FitH null]');
-		else if(this.ZoomMode=='real')
-			this._out('/OpenAction [3 0 R /XYZ null null 1]');
-		else if(!(typeof this.ZoomMode === 'string'))
-			this._out('/OpenAction [3 0 R /XYZ null null '+sprintf('%.2F',this.ZoomMode/100)+']');
+	switch (v_align) {
+		case RrdGraph.GFX_V_TOP:
+			if (angle != -90) {
+				y = y + height/2;
+			}
+			break;
+		case RrdGraph.GFX_V_BOTTOM:
+			y = y - height/3;
+			break;
+		case RrdGraph.GFX_V_CENTER:
+			if (angle == 90) {
+				y = y + width/2;
+			} else {
+				y = y + height/4;
+			}
+			break;
+	}
 
-		if(this.LayoutMode=='single')
-			this._out('/PageLayout /SinglePage');
-		else if(this.LayoutMode=='continuous')
-			this._out('/PageLayout /OneColumn');
-		else if(this.LayoutMode=='two')
-			this._out('/PageLayout /TwoColumnLeft');
-	},
-	_enddoc: function()
-	{
-		this._out('%PDF-'+this.PDFVersion);
-		this._putpages();
-		this._putresources();
-		// Info
-		this._newobj();
-		this._out('<<');
-		this._putinfo();
-		this._out('>>');
-		this._out('endobj');
-		// Catalog
-		this._newobj();
-		this._out('<<');
-		this._putcatalog();
-		this._out('>>');
-		this._out('endobj');
-		// Cross-ref
-		var o = this.buffer.length;
-		this._out('xref');
-		this._out('0 '+(this.n+1));
-		this._out('0000000000 65535 f ');
-		for(var i=1;i<=this.n;i++)
-			this._out(sprintf('%010d 00000 n ',this.offsets[i]));
-		// Trailer
-		this._out('trailer');
-		this._out('<<');
-		this._out('/Size '+(this.n+1));
-		this._out('/Root '+this.n+' 0 R');
-		this._out('/Info '+(this.n-1)+' 0 R');
-		this._out('>>');
-		this._out('startxref');
-		this._out(o);
-		this._out('%%EOF');
-		this.state = 3;
+	x = x*this.k;
+	y = (this.h-y)*this.k
+
+	var tm = [];
+	tm[0] = Math.cos(angle*Math.PI/180.0);
+  tm[1] = Math.sin(angle*Math.PI/180.0);
+  tm[2] = -tm[1];
+  tm[3] = tm[0];
+
+  tm[4] = x + (tm[1] * y) - (tm[0] * x);
+  tm[5] = y - (tm[0] * y) - (tm[1] * x);
+
+	var rgba = this.parse_color(color);
+	this._save();
+	this._out('BT');
+	this._out(sprintf('%.3F %.3F %.3F rg', rgba[0]/255,rgba[1]/255,rgba[2]/255));
+	this._out(sprintf('%.2F %.2F Td', x, y));
+	this._out(sprintf('%.3F %.3F %.3F %.3F %.3F %.3F cm', tm[0], tm[1], tm[2], tm[3], tm[4], tm[5]));
+	this._out(sprintf('(%s) Tj',this._escape(text)));
+	this._out('ET');
+	this._restore();
+};
+
+RrdGfxPdf.prototype.get_text_width = function(start, font, tabwidth, text)
+{
+	var width = this._getStringWidth('courier', '', font.size*this.k, text);
+	return width;
+};
+
+/****              Public methods            *****/
+
+RrdGfxPdf.prototype.SetMargins = function(left, top, right)
+{
+	if (right === undefined)
+		right = null;
+	// Set left, top and right margins
+	this.lMargin = left;
+	this.tMargin = top;
+	if(right===null)
+		right = left;
+	this.rMargin = right;
+};
+
+RrdGfxPdf.prototype.SetLeftMargin = function(margin)
+{
+	// Set left margin
+	this.lMargin = margin;
+	if(this.page>0 && this.x<margin)
+		this.x = margin;
+};
+
+RrdGfxPdf.prototype.SetTopMargin = function(margin)
+{
+	// Set top margin
+	this.tMargin = margin;
+};
+
+RrdGfxPdf.prototype.SetRightMargin = function(margin)
+{
+	// Set right margin
+	this.rMargin = margin;
+};
+
+RrdGfxPdf.prototype.SetDisplayMode = function(zoom, layout)
+{
+	// Set display mode in viewer
+	if(zoom === 'fullpage' || zoom === 'fullwidth' || zoom === 'real' || zoom == 'default' || !(typeof zoom === "string"))
+		this.ZoomMode = zoom;
+	else
+		throw 'Incorrect zoom display mode: '+zoom;
+
+	if(layout === undefined) {
+		this.LayoutMode = 'default';
+	} else if(layout === 'single' || layout === 'continuous' || layout === 'two' || layout === 'default') {
+		this.LayoutMode = layout;
+	} else {
+		throw 'Incorrect layout display mode: '+layout;
 	}
 };
+
+RrdGfxPdf.prototype.SetTitle = function(title)
+{
+	// Title of document
+	this.title = title;
+};
+
+RrdGfxPdf.prototype.SetSubject = function(subject)
+{
+	// Subject of document
+	this.subject = subject;
+};
+
+RrdGfxPdf.prototype.SetAuthor = function(author)
+{
+	// Author of document
+	this.author = author;
+};
+
+RrdGfxPdf.prototype.SetKeywords = function(keywords)
+{
+	// Keywords of document
+	this.keywords = keywords;
+};
+
+RrdGfxPdf.prototype.SetCreator = function(creator)
+{
+	// Creator of document
+	this.creator = creator;
+};
+
+RrdGfxPdf.prototype.Open = function()
+{
+	// Begin document
+	this.state = 1;
+};
+
+RrdGfxPdf.prototype.Close = function()
+{
+	// Terminate document
+	if(this.state==3)
+		return;
+	if(this.page==0)
+		this.AddPage();
+	// Close page
+	this._endpage();
+	// Close document
+	this._enddoc();
+};
+
+RrdGfxPdf.prototype.AddPage = function(orientation, size)
+{
+	if (orientation === undefined) orientation='';
+	if (size === undefined) size='';
+
+	// Start a new page
+	if(this.state==0)
+		this.Open();
+
+	var family = this.FontFamily;
+	var style = this.FontStyle;
+	var fontsize = this.FontSizePt;
+	var lw = this.LineWidth;
+	var dc = this.DrawColor;
+	var fc = this.FillColor;
+	var tc = this.TextColor;
+	var cf = this.ColorFlag;
+
+	if(this.page>0)
+	{
+		// Close page
+		this._endpage();
+	}
+	// Start new page
+	this._beginpage(orientation,size);
+	// Set line cap style to square
+	this._out('2 J');
+	// Set line width
+	this.LineWidth = lw;
+	this._out(sprintf('%.2F w',lw*this.k));
+	// Set font
+	if(family)
+		this._setFont(family,style,fontsize);
+	// Set colors
+	this.DrawColor = dc;
+	if(dc!='0 G')
+		this._out(dc);
+	this.FillColor = fc;
+	if(fc!='0 g')
+		this._out(fc);
+	this.TextColor = tc;
+	this.ColorFlag = cf;
+	// Restore line width
+	if(this.LineWidth!=lw)
+	{
+		this.LineWidth = lw;
+		this._out(sprintf('%.2F w',lw*this.k));
+	}
+	// Restore font
+	if(family)
+		this._setFont(family,style,fontsize);
+	// Restore colors
+	if(this.DrawColor!=dc)
+	{
+		this.DrawColor = dc;
+		this._out(dc);
+	}
+	if(this.FillColor!=fc)
+	{
+		this.FillColor = fc;
+		this._out(fc);
+	}
+	this.TextColor = tc;
+	this.ColorFlag = cf;
+};
+
+RrdGfxPdf.prototype.PageNo = function()
+{
+	// Get current page number
+	return this.page;
+};
+
+RrdGfxPdf.prototype._setDrawColor = function(r, g, b)
+{
+	if (g === undefined) g=null;
+	if (b === undefined) b=null;
+	// Set color for all stroking operations
+	if((r==0 && g==0 && b==0) || g===null)
+		this.DrawColor = sprintf('%.3F G',r/255);
+	else
+		this.DrawColor = sprintf('%.3F %.3F %.3F RG',r/255,g/255,b/255);
+	if(this.page>0)
+		this._out(this.DrawColor);
+};
+
+RrdGfxPdf.prototype._setFillColor = function(r, g, b)
+{
+	if (g === undefined) g=null;
+	if (b === undefined) b=null;
+	// Set color for all filling operations
+	if((r==0 && g==0 && b==0) || g===null)
+		this.FillColor = sprintf('%.3F g',r/255);
+	else
+		this.FillColor = sprintf('%.3F %.3F %.3F rg',r/255,g/255,b/255);
+	this.ColorFlag = (this.FillColor!=this.TextColor);
+	if(this.page>0)
+		this._out(this.FillColor);
+};
+
+RrdGfxPdf.prototype._setTextColor = function(r, g, b)
+{
+	if (g === undefined) g=null;
+	if (b === undefined) b=null;
+	// Set color for text
+	if((r==0 && g==0 && b==0) || g===null)
+		this.TextColor = sprintf('%.3F g',r/255);
+	else
+		this.TextColor = sprintf('%.3F %.3F %.3F rg',r/255,g/255,b/255);
+	this.ColorFlag = (this.FillColor!=this.TextColor);
+};
+
+RrdGfxPdf.prototype._getStringWidth = function(family, style, size, s)
+{
+	if (style === undefined) style = '';
+	if (size === undefined) size = 0;
+	// Select a font; size given in points
+
+	if(family=='') family = this.FontFamily;
+	else family = family.toLowerCase();
+
+	style = style.toUpperCase();
+	if(style=='IB') style = 'BI';
+
+	if(size==0) size = this.FontSizePt;
+
+	// Test if font is already loaded
+	var fontkey = family+style;
+	if(!(fontkey in this.fonts)) {
+		// Test if one of the core fonts
+		if(family=='arial') family = 'helvetica';
+		if(family=='symbol' || family=='zapfdingbats') style = '';
+		fontkey = family+style;
+
+		if (!(fontkey in this.fonts))
+			this.AddFont(family, style);
+	}
+	// Select it
+	size = size/this.k;
+	var cw = this.fonts[fontkey].cw;
+	var w = 0;
+	var l = s.length;
+	for(var i=0; i<l; i++) {
+		w += cw[s.charCodeAt(i)];
+	}
+	return w*size/1000;
+};
+
+RrdGfxPdf.prototype._setLineWidth = function(width)
+{
+	// Set line width
+	this.LineWidth = width;
+	if(this.page>0)
+		this._out(sprintf('%.2F w',width*this.k));
+};
+
+RrdGfxPdf.prototype._moveTo = function(x, y)
+{
+	this._out(sprintf('%.2F %.2F m',x*this.k,(this.h-y)*this.k));
+};
+
+RrdGfxPdf.prototype._lineTo = function(x, y)
+{
+	this._out(sprintf('%.2F %.2F l',x*this.k,(this.h-y)*this.k));
+};
+
+RrdGfxPdf.prototype._stroke = function()
+{
+	this._out('S');
+};
+
+RrdGfxPdf.prototype._save = function()
+{
+	this._out('q');
+};
+
+RrdGfxPdf.prototype._restore = function()
+{
+	this._out('Q');
+};
+
+RrdGfxPdf.prototype._closePath = function()
+{
+	this._out('h');
+};
+
+RrdGfxPdf.prototype._fill = function()
+{
+	this._out('f');
+};
+
+RrdGfxPdf.prototype._line = function(x1, y1, x2, y2)
+{
+	// Draw a line
+	this._out(sprintf('%.2F %.2F m %.2F %.2F l S',x1*this.k,(this.h-y1)*this.k,x2*this.k,(this.h-y2)*this.k));
+};
+
+RrdGfxPdf.prototype._rect = function(x, y, w, h, style)
+{
+	var op;
+	// Draw a rectangle
+	if(style=='F')
+		op = 'f';
+	else if(style=='FD' || style=='DF')
+		op = 'B';
+	else
+		op = 'S';
+	this._out(sprintf('%.2F %.2F %.2F %.2F re %s',x*this.k,(this.h-y)*this.k,w*this.k,-h*this.k,op));
+};
+
+RrdGfxPdf.prototype.AddFont = function (family, style, file)
+{
+	if (style === undefined) style = '';
+
+	if(family=='') family = this.FontFamily;
+	else family = family.toLowerCase();
+
+	style = style.toUpperCase();
+	if(style=='IB') style = 'BI';
+
+	var fontkey = family+style;
+	if(fontkey in this.fonts)
+		return;
+
+	if(fontkey in RrdGfxPdf.CORE_FONTS){
+		var font = RrdGfxPdf.CORE_FONTS[fontkey];
+		this.fonts[fontkey] = font;
+		var i=0;
+		for (var n in this.fonts) i++;
+		font['i'] = i;
+	} else {
+		throw 'Undefined font: '+family+' '+style;
+	}
+};
+
+RrdGfxPdf.prototype._setFont = function(family, style, size)
+{
+	if (style === undefined) style = '';
+	if (size === undefined) size = 0;
+	// Select a font; size given in points
+
+	if(family=='') family = this.FontFamily;
+	else family = family.toLowerCase();
+
+	style = style.toUpperCase();
+	if(style=='IB') style = 'BI';
+
+	if(size==0) size = this.FontSizePt;
+
+	// Test if font is already selected
+	//if(this.FontFamily==family && this.FontStyle==style && this.FontSizePt==size)
+	//	return;
+
+	// Test if font is already loaded
+	var fontkey = family+style;
+	if(!(fontkey in this.fonts)) {
+		// Test if one of the core fonts
+		if(family=='arial') family = 'helvetica';
+		if(family=='symbol' || family=='zapfdingbats') style = '';
+		fontkey = family+style;
+
+		if (!(fontkey in this.fonts))
+			this.AddFont(family, style);
+	}
+	// Select it
+	this.FontFamily = family;
+	this.FontStyle = style;
+	this.FontSizePt = size;
+	this.FontSize = size/this.k;
+	this.CurrentFont = this.fonts[fontkey];
+	if(this.page>0)
+		this._out(sprintf('BT /F%d %.2F Tf ET',this.CurrentFont['i'],this.FontSizePt)); // FIXME i
+};
+
+RrdGfxPdf.prototype._setFontSize = function(size)
+{
+	// Set font size in points
+	//if(this.FontSizePt==size)
+	//	return;
+	this.FontSizePt = size;
+	this.FontSize = size/this.k;
+	if(this.page>0)
+		this._out(sprintf('BT /F%d %.2F Tf ET',this.CurrentFont['i'],this.FontSizePt));
+};
+
+RrdGfxPdf.prototype._text = function(x, y, txt)
+{
+	// Output a string
+	var s = sprintf('BT %.2F %.2F Td (%s) Tj ET',x*this.k,(this.h-y)*this.k,this._escape(txt));
+	if(this.ColorFlag)
+		s = 'q '+this.TextColor+' '+s+' Q';
+	this._out(s);
+};
+
+RrdGfxPdf.prototype.output = function()
+{
+	// Output PDF to some destination
+	if(this.state<3)
+		this.Close();
+	document.location.href = 'data:application/pdf;base64,' + Base64.encode(this.buffer);
+	//return this.buffer;
+};
+
+RrdGfxPdf.prototype._getpagesize = function(size) // FIXME
+{
+	if(typeof size === "string" ) {
+		size = size.toLowerCase();
+		if(!(size in this.StdPageSizes))
+			throw 'Unknown page size: '+size;
+		var a = this.StdPageSizes[size];
+		return [a[0]/this.k, a[1]/this.k];
+	} else {
+		if(size[0]>size[1]) {
+			return [size[1], size[0]];
+		} else {
+			return size;
+		}
+	}
+};
+
+RrdGfxPdf.prototype._beginpage = function(orientation, size)
+{
+	this.page++;
+	this.pages[this.page] = '';
+	this.state = 2;
+	this.x = this.lMargin;
+	this.y = this.tMargin;
+	this.FontFamily = '';
+	// Check page size and orientation
+	if(orientation=='') orientation = this.DefOrientation;
+	else orientation = strtoupper(orientation[0]);
+
+	if(size=='') size = this.DefPageSize;
+	else size = this._getpagesize(size);
+
+	if(orientation!=this.CurOrientation || size[0]!=this.CurPageSize[0] || size[1]!=this.CurPageSize[1])
+	{
+		// New size or orientation
+		if(orientation=='P') {
+			this.w = size[0];
+			this.h = size[1];
+		} else {
+			this.w = size[1];
+			this.h = size[0];
+		}
+		this.wPt = this.w*this.k;
+		this.hPt = this.h*this.k;
+		this.CurOrientation = orientation;
+		this.CurPageSize = size;
+	}
+	if(orientation!=this.DefOrientation || size[0]!=this.DefPageSize[0] || size[1]!=this.DefPageSize[1])
+		this.PageSizes[this.page] = [this.wPt, this.hPt];
+};
+
+RrdGfxPdf.prototype._endpage = function()
+{
+	this.state = 1;
+};
+
+RrdGfxPdf.prototype._escape = function(s) // FIXME
+{
+	// Escape special characters in strings
+	//s = str_replace('\\','\\\\',s);
+	//s = str_replace('(','\\(',s);
+	//s = str_replace(')','\\)',s);
+	//s = str_replace("\r",'\\r',s);
+	return s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+};
+
+RrdGfxPdf.prototype._textstring = function(s)
+{
+	// Format a text string
+	return '('+this._escape(s)+')';
+};
+
+RrdGfxPdf.prototype._newobj = function()
+{
+	// Begin a new object
+	this.n++;
+	this.offsets[this.n] = this.buffer.length;
+	this._out(this.n+' 0 obj');
+};
+
+RrdGfxPdf.prototype._putstream = function(s)
+{
+	this._out('stream');
+	this._out(s);
+	this._out('endstream');
+},
+
+RrdGfxPdf.prototype._out = function(s)
+{
+// Add a line to the document
+	if(this.state==2)
+		this.pages[this.page] += s+"\n";
+	else
+		this.buffer += s+"\n";
+};
+
+RrdGfxPdf.prototype._putpages = function()
+{
+	var wPt, hPt;
+	var nb = this.page;
+	if(this.DefOrientation=='P') {
+		wPt = this.DefPageSize[0]*this.k;
+		hPt = this.DefPageSize[1]*this.k;
+	} else {
+		wPt = this.DefPageSize[1]*this.k;
+		hPt = this.DefPageSize[0]*this.k;
+	}
+	for(var n=1;n<=nb;n++)
+	{
+		// Page
+		this._newobj();
+		this._out('<</Type /Page');
+		this._out('/Parent 1 0 R');
+		if(this.PageSizes[n] !== undefined)
+			this._out(sprintf('/MediaBox [0 0 %.2F %.2F]',this.PageSizes[n][0],this.PageSizes[n][1]));
+		this._out('/Resources 2 0 R');
+		if(this.PDFVersion>'1.3')
+			this._out('/Group <</Type /Group /S /Transparency /CS /DeviceRGB>>');
+		this._out('/Contents '+(this.n+1)+' 0 R>>');
+		this._out('endobj');
+		// Page content
+		this._newobj();
+		this._out('<</Length '+this.pages[n].length+'>>');
+		this._putstream(this.pages[n]);
+		this._out('endobj');
+	}
+	// Pages root
+	this.offsets[1] = this.buffer.length;
+	this._out('1 0 obj');
+	this._out('<</Type /Pages');
+	var kids = '/Kids [';
+	for(var i=0;i<nb;i++)
+		kids += (3+2*i)+' 0 R ';
+	this._out(kids+']');
+	this._out('/Count '+nb);
+	this._out(sprintf('/MediaBox [0 0 %.2F %.2F]',wPt,hPt));
+	this._out('>>');
+	this._out('endobj');
+};
+
+RrdGfxPdf.prototype._putfonts = function()
+{
+	var nf = this.n;
+	for(var diff in this.diffs) {
+		// Encodings
+		this._newobj();
+		this._out('<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences ['+diff+']>>');
+		this._out('endobj');
+	}
+	for(var font in this.fonts) { // FIXME
+		// Font objects
+		this.fonts[font]['n'] = this.n+1;
+		var name = this.fonts[font]['name'];
+		// Core font
+		this._newobj();
+		this._out('<</Type /Font');
+		this._out('/BaseFont /'+name);
+		this._out('/Subtype /Type1');
+		if(name!='Symbol' && name!='ZapfDingbats')
+			this._out('/Encoding /WinAnsiEncoding');
+		this._out('>>');
+		this._out('endobj');
+	}
+};
+
+RrdGfxPdf.prototype._putresourcedict = function()
+{
+	this._out('/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]');
+	this._out('/Font <<');
+	for(var font in this.fonts)
+		this._out('/F'+this.fonts[font]['i']+' '+this.fonts[font]['n']+' 0 R');
+	this._out('>>');
+	this._out('/XObject <<');
+	this._out('>>');
+};
+
+RrdGfxPdf.prototype._putresources = function()
+{
+	this._putfonts();
+	// Resource dictionary
+	this.offsets[2] = this.buffer.length;
+	this._out('2 0 obj');
+	this._out('<<');
+	this._putresourcedict();
+	this._out('>>');
+	this._out('endobj');
+};
+
+RrdGfxPdf.prototype._putinfo = function()
+{
+	// this._out('/Producer '+this._textstring('FPDF '+FPDF_VERSION)); FIXME
+	if(this.title != null)
+		this._out('/Title '+this._textstring(this.title));
+	if(this.subject != null)
+		this._out('/Subject '+this._textstring(this.subject));
+	if(this.author != null)
+		this._out('/Author '+this._textstring(this.author));
+	if(this.keywords != null)
+		this._out('/Keywords '+this._textstring(this.keywords));
+	if(this.creator != null)
+		this._out('/Creator '+this._textstring(this.creator));
+	// this._out('/CreationDate '+this._textstring('D:'+date('YmdHis'))); // FIXME
+};
+
+RrdGfxPdf.prototype._putcatalog = function()
+{
+	this._out('/Type /Catalog');
+	this._out('/Pages 1 0 R');
+
+	if(this.ZoomMode=='fullpage')
+		this._out('/OpenAction [3 0 R /Fit]');
+	else if(this.ZoomMode=='fullwidth')
+		this._out('/OpenAction [3 0 R /FitH null]');
+	else if(this.ZoomMode=='real')
+		this._out('/OpenAction [3 0 R /XYZ null null 1]');
+	else if(!(typeof this.ZoomMode === 'string'))
+		this._out('/OpenAction [3 0 R /XYZ null null '+sprintf('%.2F',this.ZoomMode/100)+']');
+
+	if(this.LayoutMode=='single')
+		this._out('/PageLayout /SinglePage');
+	else if(this.LayoutMode=='continuous')
+		this._out('/PageLayout /OneColumn');
+	else if(this.LayoutMode=='two')
+		this._out('/PageLayout /TwoColumnLeft');
+};
+
+RrdGfxPdf.prototype._enddoc = function()
+{
+	this._out('%PDF-'+this.PDFVersion);
+	this._putpages();
+	this._putresources();
+	// Info
+	this._newobj();
+	this._out('<<');
+	this._putinfo();
+	this._out('>>');
+	this._out('endobj');
+	// Catalog
+	this._newobj();
+	this._out('<<');
+	this._putcatalog();
+	this._out('>>');
+	this._out('endobj');
+	// Cross-ref
+	var o = this.buffer.length;
+	this._out('xref');
+	this._out('0 '+(this.n+1));
+	this._out('0000000000 65535 f ');
+	for(var i=1;i<=this.n;i++)
+		this._out(sprintf('%010d 00000 n ',this.offsets[i]));
+	// Trailer
+	this._out('trailer');
+	this._out('<<');
+	this._out('/Size '+(this.n+1));
+	this._out('/Root '+this.n+' 0 R');
+	this._out('/Info '+(this.n-1)+' 0 R');
+	this._out('>>');
+	this._out('startxref');
+	this._out(o);
+	this._out('%%EOF');
+	this.state = 3;
+};
+
