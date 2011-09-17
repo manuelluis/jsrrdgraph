@@ -75,8 +75,8 @@ function strftime (fmt, time)
 				return pad2(hours === 0 ? 12 : hours);
 				break;
 			case 'j':
-				var d01 = new Date (date.getFullYear(), 0, 1);
-				return pad3(Math.ceil((d01.getTime()-d.getTime())/86400000));
+				var d01 = new Date (d.getFullYear(), 0, 1);
+				return pad3(Math.ceil((d.getTime()-d01.getTime())/86400000)+1);
 				break;
 			case 'm':	
 				return pad2(d.getMonth());
@@ -93,23 +93,35 @@ function strftime (fmt, time)
 			case 'S':
 				return d.getTime()/1000;
 				break;
-//			%U The week number of the current year as a decimal number, range 00 to 53, starting with the first Sunday as the first day of week 01. See also %V and %W.
-			case 'U': // FIXME weeks
-				var d01 = new Date(d.getFullYear(),0,1);
-				return pad2(Math.ceil((((d.getTime() - d01.getTime()) / 86400000) + d01.getDay()+1)/7)); // FIXME weeks
+			case 'u':
+        return d.getDay() === 0 ? 7 : d.getDay();
 				break;
-//			%V The ISO 8601:1988 week number of the current year as a decimal number, range 01 to 53, where week 1 is the first week that has at least 4 days in the current year, and with Monday as the first day of the week. See also %U and %W.
-			case 'V': // FIXME weeks
-				var d01 = new Date(d.getFullYear(),0,1); 
-				return Math.ceil((((d.getTime() - d01.getTime()) / 86400000) + d01.getDay()+1)/7); // FIXME
+			case 'U': 
+				var d01 = new Date(d.getFullYear(),0,1);
+				return pad2(Math.round((Math.ceil((d.getTime()-d01.getTime())/86400000)+1 + 6 - d.getDay())/7)); 
+				break;
+			case 'V': 
+				var d01 = new Date(d.getFullYear(), 0, 1);
+				var w = Math.round((Math.ceil((d.getTime()-d01.getTime())/86400000)+1 + 7 - (d.getDay() === 0 ? 7 : d.getDay()))/7);
+				var d31 = new Date(d.getFullYear(), 11, 31);
+				if (d01.getDay() < 4 && d01.getDay() > 1) w++;
+				if (w === 53 && d31.getDay() < 4) {
+					w = 1;
+				} else if (w === 0) {
+					d31 = new Date(d.getFullYear()-1, 11, 31);
+					d01 = new Date(d31.getFullYear(), 0, 1);
+					w = Math.round((Math.ceil((d31.getTime()-d01.getTime())/86400000)+1 + 7 - (d31.getDay() === 0 ? 7 : d31.getDay()))/7);
+					if (d01.getDay() < 4 && d01.getDay() > 1) w++;
+					if (w === 53 && d31.getDay() < 4) w = 1;
+				}
+				return pad2(w);
 				break;
 			case 'w':
 				return d.getDay();
 				break;
-//			%W The week number of the current year as a decimal number, range 00 to 53, starting with the first Monday as the first day of week 01.
-			case 'W': // FIXME weeks
+			case 'W': 
 				var d01 = new Date(d.getFullYear(),0,1); 
-				return Math.ceil((((d.getTime() - d01.getTime()) / 86400000) + d01.getDay()+1)/7); // FIXME
+				return pad2(Math.round((Math.ceil((d.getTime()-d01.getTime())/86400000)+1 + 7 - (d.getDay() === 0 ? 7 : d.getDay()))/7));
 				break;
 			case 'x':
 				return pad2(d.getDate())+'/'+pad2(d.getMonth())+'/'+d.getFullYear()
