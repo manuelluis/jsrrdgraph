@@ -94,7 +94,7 @@ function strftime (fmt, time)
 				return d.getTime()/1000;
 				break;
 			case 'u':
-        return d.getDay() === 0 ? 7 : d.getDay();
+				return d.getDay() === 0 ? 7 : d.getDay();
 				break;
 			case 'U': 
 				var d01 = new Date(d.getFullYear(),0,1);
