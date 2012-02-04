@@ -565,7 +565,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 					var dur = this.rpnstack[stptr];
 					var step = this.rpnp[rpi - 2].step;
 
-					if (output_idx > Math.ceil(dur / step)) {
+					if (output_idx + 1 >= Math.ceil(dur / step)) {
 						var ignorenan = (this.rpnp[rpi].op == RrdRpn.OP_TREND);
 						var accum = 0.0;
 						var i = 0;
