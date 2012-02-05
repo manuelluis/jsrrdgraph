@@ -724,7 +724,7 @@ var RrdGraph = function (gfx, data)
 	this.yimg = 0;
 	this.legendwidth = 0; /* the calculated height and width of the legend */
 	this.legendheight = 0;
-	this.magfact = 0;  /* numerical magnitude */
+	this.magfact = 1;  /* numerical magnitude */
 	this.symbol = null;   /* magnitude symbol for y-axis */
 	this.viewfactor = 1.0;  /* how should the numbers on the y-axis be scaled for viewing ? */
 
@@ -861,6 +861,8 @@ var RrdGraph = function (gfx, data)
 	];
 
 	this.si_symbol = [
+		'y',                /* 10e-24 Yocto */
+		'z',                /* 10e-21 Zepto */
 		'a',                /* 10e-18 Atto */
 		'f',                /* 10e-15 Femto */
 		'p',                /* 10e-12 Pico */
@@ -873,9 +875,11 @@ var RrdGraph = function (gfx, data)
 		'G',                /* 10e9   Giga */
 		'T',                /* 10e12  Tera */
 		'P',                /* 10e15  Peta */
-		'E'                /* 10e18  Exa */
+		'E',                /* 10e18  Exa */
+    'Z',                /* 10e21  Zeta */
+    'Y'                 /* 10e24  Yotta */
 	];
-	this.si_symbcenter = 6;
+	this.si_symbcenter = 8;
 
 	this.start_t = new RrdTime("end-24h");
 	this.end_t = new RrdTime("now");
@@ -1253,7 +1257,7 @@ RrdGraph.prototype.reduce_data = function(gdes, cur_step)
 			var newval = Number.NaN;
 			var validval = 0;
 
-			for (i = 0; i < reduce_factor; i++) {
+			for (var i = 0; i < reduce_factor; i++) {
 				if (isNaN(gdes.data[srcptr + i*gdes.ds_cnt + col])) continue;
 				validval++;
 				if (isNaN(newval)) {
@@ -1348,6 +1352,7 @@ RrdGraph.prototype.data_fetch = function()
 			if (ft_step < 0)
 				return -1;
 			this.gdes[i].data_first = 1;
+//			this.gdes[i].step = Math.max(this.gdes[i].step, this.step); // FIXME
 			if (ft_step < this.gdes[i].step) {
 					this.reduce_data(this.gdes[i], ft_step);
 			} else {
@@ -1618,11 +1623,12 @@ RrdGraph.prototype.leg_place = function (calc_width)
 			}
 			/* only valid control codes */
 			if (prt_fctn != 'l' && prt_fctn != 'n' && prt_fctn != 'r' && prt_fctn != 'j' && prt_fctn != 'c' &&
-				prt_fctn != 'u' && prt_fctn != 's' && prt_fctn != null  && prt_fctn != 'g') {
+				prt_fctn != '.' && prt_fctn != 'u' && prt_fctn != 's' && prt_fctn != null  && prt_fctn != 'g') {
 				throw new RrdGraphError("Unknown control code at the end of "+this.gdes[i].legend+": "+prt_fctn);
 			}
 			/* \n -> \l */
 			if (prt_fctn === 'n') prt_fctn = 'l';
+			if (prt_fctn === '.') prt_fctn = '\0';
 
 			/* remove exess space from the end of the legend for \g */
 			while (prt_fctn === 'g' && leg_cc > 0 && this.gdes[i].legend.charAt(leg_cc - 1) === ' ') {
@@ -1681,7 +1687,7 @@ RrdGraph.prototype.leg_place = function (calc_width)
 					glue = 0;
 				}
 				if (prt_fctn === 'c')
-					leg_x = (legendwidth - fill) / 2.0;
+					leg_x = border + (legendwidth - fill) / 2.0;
 				if (prt_fctn === 'r')
 					leg_x = legendwidth - fill + border;
 				for (ii = mark; ii <= i; ii++) {
@@ -2358,6 +2364,7 @@ RrdGraph.prototype.graph_size_location = function (elements)
 		this.ximg = this.xsize;
 		this.yimg = this.ysize;
 		this.yorigin = this.ysize;
+		this.xtr(0);
 		this.ytr(Number.NaN);
 		return 0;
 	}
@@ -2366,13 +2373,16 @@ RrdGraph.prototype.graph_size_location = function (elements)
 		Ywatermark = this.TEXT.WATERMARK.size * 1.5; // 2
 	if(this.ylegend)
 		Xvertical = this.TEXT.UNIT.size * 1.5; // 2
-	if(this.second_axis_legend)
+	if(this.second_axis_legend) {
 		Xvertical2 = this.TEXT.UNIT.size * 1.5; // 2
+	} else {
+		Xvertical2 = Xspacing;
+	}
 
 	if(this.title)
 		Ytitle = this.TEXT.TITLE.size * 1.95 + 10; // 2.6
 	else
-		Ytitle = 1.5 * Yspacing;
+		Ytitle = Yspacing;
 
 	if (elements) {
 		if (this.draw_x_grid)
@@ -2419,7 +2429,7 @@ RrdGraph.prototype.graph_size_location = function (elements)
 
 		Ymain -= Ytitle;
 
-		if (this.nolegened) Ymain -= Yspacing;
+		if (this.nolegened) Ymain -= 0.5*Yspacing;
 		if (this.watermark) Ymain -= Ywatermark;
 		if(Ymain < 1) Ymain = 1;
 		this.ysize = Ymain;
@@ -2452,7 +2462,7 @@ RrdGraph.prototype.graph_size_location = function (elements)
 		if (Ytitle) this.yimg += Ytitle;
 		else this.yimg += 1.5 * Yspacing;
 
-		if (this.no_legend) this.yimg += Yspacing;
+		if (this.no_legend) this.yimg += 0.5*Yspacing;
 		if (this.watermark) this.yimg += Ywatermark;
 	}
 
@@ -2465,7 +2475,7 @@ RrdGraph.prototype.graph_size_location = function (elements)
 
 	switch(this.legendposition){
 		case RrdGraph.LEGEND_POS_NORTH:
-			this.xOriginTitle   = Math.round(Xvertical + Xylabel + (this.xsize / 2));
+			this.xOriginTitle   = Math.round(this.xsize / 2);
 			this.yOriginTitle   = 0;
 			this.xOriginLegend  = 0;
 			this.yOriginLegend  = Math.round(Ytitle);
@@ -2478,7 +2488,7 @@ RrdGraph.prototype.graph_size_location = function (elements)
 			this.yOriginLegendY2 = Math.round(Ytitle + this.legendheight + (Ymain / 2) + Yxlabel);
 			break;
 		case RrdGraph.LEGEND_POS_WEST:
-			this.xOriginTitle   = Math.round(this.legendwidth + Xvertical + Xylabel + this.xsize / 2);
+			this.xOriginTitle   = Math.round(this.legendwidth + this.xsize / 2);
 			this.yOriginTitle   = 0;
 			this.xOriginLegend  = 0;
 			this.yOriginLegend  = Math.round(Ytitle);
@@ -2491,7 +2501,7 @@ RrdGraph.prototype.graph_size_location = function (elements)
 			this.yOriginLegendY2 = Math.round(Ytitle + (Ymain / 2));
 			break;
 		case RrdGraph.LEGEND_POS_SOUTH:
-			this.xOriginTitle   = Math.round(Xvertical + Xylabel + this.xsize / 2);
+			this.xOriginTitle   = Math.round(this.xsize / 2);
 			this.yOriginTitle   = 0;
 			this.xOriginLegend  = 0;
 			this.yOriginLegend  = Math.round(Ytitle + Ymain + Yxlabel);
@@ -2504,7 +2514,7 @@ RrdGraph.prototype.graph_size_location = function (elements)
 			this.yOriginLegendY2 = Math.round(Ytitle + (Ymain / 2));
 			break;
 		case RrdGraph.LEGEND_POS_EAST:
-			this.xOriginTitle   = Math.round(Xvertical + Xylabel + this.xsize / 2);
+			this.xOriginTitle   = Math.round(this.xsize / 2);
 			this.yOriginTitle   = 0;
 			this.xOriginLegend  = Math.round(Xvertical + Xylabel + Xmain + Xvertical2);
 			if (this.second_axis_scale != 0) this.xOriginLegend += Xylabel;
