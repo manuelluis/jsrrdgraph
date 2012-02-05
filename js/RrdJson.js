@@ -179,7 +179,7 @@ RrdJson.prototype = {
 					break;
 				case 'units':
 					break;
-				case 'no_rrdtool_tag':
+				case 'disable_rrdtool_tag':
 					this.graph.no_rrdtool_tag = this.json.disable_rrdtool_tag;
 					break;
 				case 'right_axis':
@@ -437,7 +437,7 @@ RrdJson.prototype = {
 			this.json.units = 'si'; // FIXME
 	
 		if (this.graph.no_rrdtool_tag != false || full)
-			this.json.no_rrdtool_tag = this.graph.no_rrdtool_tag;
+			this.json.disable_rrdtool_tag = this.graph.no_rrdtool_tag;
 
 //		this.json.right_axis = FIXME
 
