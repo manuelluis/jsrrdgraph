@@ -795,7 +795,7 @@ var RrdGraph = function (gfx, data)
 	this.AlmostEqualInt = new Int32Array(this.AlmostEqualBuffer);
 	this.AlmostEqualFloat = new Float32Array(this.AlmostEqualBuffer);
 
-	this.DEFAULT_FONT = "'Ubuntu Mono', 'Open San',sans-serif"; //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier', // pt -> pt=px*72/96
+	this.DEFAULT_FONT = "'Ubuntu Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monospace', 'Courier'"; //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier', // pt -> pt=px*72/96
 	this.MGRIDWIDTH = 0.6;
 	this.GRIDWIDTH = 0.4;
 	this.YLEGEND_ANGLE = 90.0;
