@@ -115,7 +115,7 @@ var RrdGraphDesc = function (graph)
 			this.tick.apply(this, args);
 			break;
 		case RrdGraphDesc.GF_TEXTALIGN:
-			this.textaling.apply(this, args);
+			this.textalign.apply(this, args);
 			break;
 		case RrdGraphDesc.GF_DEF:
 			this.def.apply(this, args);
@@ -795,17 +795,17 @@ var RrdGraph = function (gfx, data)
 	this.AlmostEqualInt = new Int32Array(this.AlmostEqualBuffer);
 	this.AlmostEqualFloat = new Float32Array(this.AlmostEqualBuffer);
 
-	this.DEFAULT_FONT = 'DejaVu Sans Mono'; //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier', // pt -> pt=px*72/96
+	this.DEFAULT_FONT = "'Ubuntu Mono', 'Open San',sans-serif"; //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier', // pt -> pt=px*72/96
 	this.MGRIDWIDTH = 0.6;
 	this.GRIDWIDTH = 0.4;
 	this.YLEGEND_ANGLE = 90.0;
 
 	this.TEXT = {	
-			DEFAULT: { size: 11, font: this.DEFAULT_FONT },
-			TITLE: { size: 12, font: this.DEFAULT_FONT },
-			AXIS: { size: 10, font: this.DEFAULT_FONT },
-			UNIT: { size: 11, font: this.DEFAULT_FONT },
-			LEGEND: { size: 11, font: this.DEFAULT_FONT },
+			DEFAULT: { size: 12, font: this.DEFAULT_FONT },
+			TITLE: { size: 13, font: this.DEFAULT_FONT },
+			AXIS: { size: 11, font: this.DEFAULT_FONT },
+			UNIT: { size: 12, font: this.DEFAULT_FONT },
+			LEGEND: { size: 12, font: this.DEFAULT_FONT },
 			WATERMARK: { size: 8, font: this.DEFAULT_FONT }
 	};	
 
@@ -2985,7 +2985,7 @@ RrdGraph.prototype.gdes_add_comment = function (text)
 
 RrdGraph.prototype.gdes_add_textalign = function (align)
 {
-	this.gdes.push(new RrdGraphDesc(this, RrdGraphDesc.GF_TEXTALING, align));
+	this.gdes.push(new RrdGraphDesc(this, RrdGraphDesc.GF_TEXTALIGN, align));
 };
 
 RrdGraph.prototype.gdes_add_vrule = function (time, color, legend)
