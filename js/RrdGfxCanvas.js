@@ -210,7 +210,7 @@ RrdGfxCanvas.prototype.text = function (x, y, color, font, tabwidth, angle, h_al
 	y = Math.round(y);
 
 	this.ctx.save();
-	this.ctx.font = font.size+'px '+"'"+font.font+"'";
+	this.ctx.font = font.size+'px '+font.font;
 
 	switch (h_align) {
 		case RrdGraph.GFX_H_LEFT:
