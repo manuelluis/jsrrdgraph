@@ -795,18 +795,19 @@ var RrdGraph = function (gfx, data)
 	this.AlmostEqualInt = new Int32Array(this.AlmostEqualBuffer);
 	this.AlmostEqualFloat = new Float32Array(this.AlmostEqualBuffer);
 
-	this.DEFAULT_FONT = "'Ubuntu Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monospace', 'Courier'"; //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier', // pt -> pt=px*72/96
+	this.DEFAULT_FONT = "'Courier', 'Ubuntu Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monospace'"; //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier', // pt -> pt=px*72/96
+	this.DEFAULT_OPT_FONT = 'normal 500';
 	this.MGRIDWIDTH = 0.6;
 	this.GRIDWIDTH = 0.4;
 	this.YLEGEND_ANGLE = 90.0;
 
 	this.TEXT = {	
-			DEFAULT: { size: 12, font: this.DEFAULT_FONT },
-			TITLE: { size: 13, font: this.DEFAULT_FONT },
-			AXIS: { size: 11, font: this.DEFAULT_FONT },
-			UNIT: { size: 12, font: this.DEFAULT_FONT },
-			LEGEND: { size: 12, font: this.DEFAULT_FONT },
-			WATERMARK: { size: 8, font: this.DEFAULT_FONT }
+			DEFAULT: { size: 12, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT },
+			TITLE: { size: 15, font: this.DEFAULT_FONT,option: this.DEFAULT_OPT_FONT },
+			AXIS: { size: 11, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT },
+			UNIT: { size: 13, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT },
+			LEGEND: { size: 12, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT },
+			WATERMARK: { size: 8, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT }
 	};	
 
 	this.GRC = {	
