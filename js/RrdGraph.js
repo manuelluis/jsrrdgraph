@@ -115,7 +115,7 @@ var RrdGraphDesc = function (graph)
 			this.tick.apply(this, args);
 			break;
 		case RrdGraphDesc.GF_TEXTALIGN:
-			this.textaling.apply(this, args);
+			this.textalign.apply(this, args);
 			break;
 		case RrdGraphDesc.GF_DEF:
 			this.def.apply(this, args);
@@ -797,18 +797,19 @@ var RrdGraph = function (gfx, data)
 	this.AlmostEqualInt = new Int32Array(this.AlmostEqualBuffer);
 	this.AlmostEqualFloat = new Float32Array(this.AlmostEqualBuffer);
 
-	this.DEFAULT_FONT = 'DejaVu Sans Mono'; //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier', // pt -> pt=px*72/96
+	this.DEFAULT_FONT = "'Courier', 'Ubuntu Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monospace'"; //DejaVu Sans Mono ,Bitstream Vera Sans Mono,monospace,Courier', // pt -> pt=px*72/96
+	this.DEFAULT_OPT_FONT = 'normal 500';
 	this.MGRIDWIDTH = 0.6;
 	this.GRIDWIDTH = 0.4;
 	this.YLEGEND_ANGLE = 90.0;
 
 	this.TEXT = {	
-			DEFAULT: { size: 11, font: this.DEFAULT_FONT },
-			TITLE: { size: 12, font: this.DEFAULT_FONT },
-			AXIS: { size: 10, font: this.DEFAULT_FONT },
-			UNIT: { size: 11, font: this.DEFAULT_FONT },
-			LEGEND: { size: 11, font: this.DEFAULT_FONT },
-			WATERMARK: { size: 8, font: this.DEFAULT_FONT }
+			DEFAULT: { size: 12, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT },
+			TITLE: { size: 15, font: this.DEFAULT_FONT,option: this.DEFAULT_OPT_FONT },
+			AXIS: { size: 11, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT },
+			UNIT: { size: 13, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT },
+			LEGEND: { size: 12, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT },
+			WATERMARK: { size: 8, font: this.DEFAULT_FONT, option: this.DEFAULT_OPT_FONT }
 	};	
 
 	this.GRC = {	
@@ -2421,9 +2422,9 @@ RrdGraph.prototype.grid_paint = function()
 				} else {
 					this.gfx.new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.GRC.BACK);
 					this.gfx.add_point(X0 + boxH, Y0 - boxV);
-			  	this.gfx.close_path();
-		  		this.gfx.new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.gdes[i].col);
-			  	this.gfx.add_point(X0 + boxH, Y0 - boxV);
+					this.gfx.close_path();
+					this.gfx.new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.gdes[i].col);
+					this.gfx.add_point(X0 + boxH, Y0 - boxV);
 					this.gfx.close_path();
 					if (this.gdes[i].dash) this.gfx.set_dash([ 3.0 ], 1, 0.0);
 					this.gfx.rectangle(X0, Y0, X0 + boxH, Y0 - boxV, 1.0, this.GRC.FRAME);
@@ -2987,7 +2988,7 @@ RrdGraph.prototype.gdes_add_comment = function (text)
 
 RrdGraph.prototype.gdes_add_textalign = function (align)
 {
-	this.gdes.push(new RrdGraphDesc(this, RrdGraphDesc.GF_TEXTALING, align));
+	this.gdes.push(new RrdGraphDesc(this, RrdGraphDesc.GF_TEXTALIGN, align));
 };
 
 RrdGraph.prototype.gdes_add_vrule = function (time, color, legend)
