@@ -115,7 +115,7 @@ var RrdGraphDesc = function (graph)
 			this.tick.apply(this, args);
 			break;
 		case RrdGraphDesc.GF_TEXTALIGN:
-			this.textaling.apply(this, args);
+			this.textalign.apply(this, args);
 			break;
 		case RrdGraphDesc.GF_DEF:
 			this.def.apply(this, args);
@@ -379,7 +379,9 @@ RrdGraphDesc.prototype.vrule = function (graph, time, color, legend)
 RrdGraphDesc.prototype.hrule = function (graph, value, color, legend)
 {
 	this.gf = RrdGraphDesc.GF_HRULE;
-	this.yrule = value;
+	this.vidx = graph.find_var(value);
+	if (this.vidx == -1)
+		this.yrule = value;
 	this.col = color;
 	if (legend === undefined) this.legend = '';
 	else this.legend = '  '+legend;
@@ -1695,9 +1697,14 @@ RrdGraph.prototype.leg_place = function (calc_width)
 				if (this.gdes[i].gf === RrdGraphDesc.GF_VRULE && (this.gdes[i].xrule < this.start || this.gdes[i].xrule > this.end))
 					this.gdes[i].legend = null;
 			}
-			this.gdes[i].legend = this.gdes[i].legend.replace(/\\t/gi, "\t") /* turn \\t into tab */
 
-			leg_cc = this.gdes[i].legend.length;
+			if (this.gdes[i].legend != null) {
+				this.gdes[i].legend = this.gdes[i].legend.replace(/\\t/gi, "\t") /* turn \\t into tab */
+				leg_cc = this.gdes[i].legend.length;
+			} else {
+				leg_cc = 0;
+			}
+
 			/* is there a controle code at the end of the legend string ? */
 			if (leg_cc >= 2 && this.gdes[i].legend.charAt(leg_cc - 2) === '\\') {
 				prt_fctn = this.gdes[i].legend.charAt(leg_cc - 1);
@@ -2419,9 +2426,9 @@ RrdGraph.prototype.grid_paint = function()
 				} else {
 					this.gfx.new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.GRC.BACK);
 					this.gfx.add_point(X0 + boxH, Y0 - boxV);
-			  	this.gfx.close_path();
-		  		this.gfx.new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.gdes[i].col);
-			  	this.gfx.add_point(X0 + boxH, Y0 - boxV);
+					this.gfx.close_path();
+					this.gfx.new_area(X0, Y0 - boxV, X0, Y0, X0 + boxH, Y0, this.gdes[i].col);
+					this.gfx.add_point(X0 + boxH, Y0 - boxV);
 					this.gfx.close_path();
 					if (this.gdes[i].dash) this.gfx.set_dash([ 3.0 ], 1, 0.0);
 					this.gfx.rectangle(X0, Y0, X0 + boxH, Y0 - boxV, 1.0, this.GRC.FRAME);
@@ -2985,7 +2992,7 @@ RrdGraph.prototype.gdes_add_comment = function (text)
 
 RrdGraph.prototype.gdes_add_textalign = function (align)
 {
-	this.gdes.push(new RrdGraphDesc(this, RrdGraphDesc.GF_TEXTALING, align));
+	this.gdes.push(new RrdGraphDesc(this, RrdGraphDesc.GF_TEXTALIGN, align));
 };
 
 RrdGraph.prototype.gdes_add_vrule = function (time, color, legend)
