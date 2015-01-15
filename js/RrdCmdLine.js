@@ -184,6 +184,8 @@ RrdCmdLine.prototype = {
 	},
 	set_option: function(option, value)
 	{
+		var args = value.split(':');
+		var index = value.indexOf(':');
 		switch(option) {
 			case 'base':
 			case 'b':
@@ -193,12 +195,12 @@ RrdCmdLine.prototype = {
 				break;
 			case 'color':
 			case 'c':
-				var index = value.indexOf('#');
+				index = value.indexOf('#');
 				if (index === -1)
 					throw "invalid color def format";
 				var name = value.substr(0,index);
 				if (!this.graph.GRC[name])
-					throw "invalid color name '"+name+"'"
+					throw "invalid color name '" + name + "'";
 				this.graph.GRC[name] = value.substr(index); // FIXME check color
 				break;
 			case 'end':
@@ -212,7 +214,7 @@ RrdCmdLine.prototype = {
 				break;
 			case 'graph-render-mode':
 			case 'G':
-			 // im->graph_antialias
+				// im->graph_antialias
 				break;
 			case 'height':
 			case 'h':
@@ -225,7 +227,7 @@ RrdCmdLine.prototype = {
 				break;
 			case 'lower-limit':
 			case 'l':
-				this.graph.setminval = parseFloat(value)
+				this.graph.setminval = parseFloat(value);
 				break;
 			case 'zoom':
 			case 'm':
@@ -235,11 +237,10 @@ RrdCmdLine.prototype = {
 				break;
 			case 'font':
 			case 'n':
-				var args = value.split(':');
 				if (args.length !== 3)
 					throw "invalid text property format";
 				if (!this.graph.TEXT[args[0]])
-					throw "invalid fonttag '"+args[0]+"'"
+					throw "invalid font tag '" + args[0] + "'";
 				if (args[1] > 0)
 					this.graph.TEXT[args[0]].size = args[1];
 				if (args[2])
@@ -251,6 +252,7 @@ RrdCmdLine.prototype = {
 				break;
 			case 'step':
 				this.graph.step = parseInt(value, 10);
+				this.graph.step_orig = this.graph.step;
 				break;
 			case 'start':
 			case 's':
@@ -292,7 +294,6 @@ RrdCmdLine.prototype = {
 				if (value === 'none')  {
 					this.graph.draw_x_grid = false;
 				} else {
-					var args = value.split(':');
 					if (args.length !== 8)
 						throw "invalid x-grid format";
 					this.graph.xlab_user.gridtm = this.graph.tmt_conv(args[0]);
@@ -318,7 +319,6 @@ RrdCmdLine.prototype = {
 				if (value === 'none')  {
 					this.graph.draw_y_grid = false;
 				} else {
-					var index = value.indexOf(':');
 					if (index === -1)
 						throw "invalid y-grid format";
 					this.graph.ygridstep = parseFloat(value.substr(0,index));
@@ -338,7 +338,6 @@ RrdCmdLine.prototype = {
 					throw "invalid argument for --units: "+value;
 				break;
 			case 'right-axis':
-				var index = value.indexOf(':');
 				if (index === -1)
 					throw "invalid right-axis format expected scale:shift";
 				this.graph.second_axis_scale = parseFloat(value.substr(0,index));
@@ -378,7 +377,6 @@ RrdCmdLine.prototype = {
 				this.graph.draw_3d_border = parseInt(value, 10);
 				break;
 			case 'grid-dash':
-				var index = value.indexOf(':');
 				if (index === -1)
 					throw "expected grid-dash format float:float";
 				this.graph.grid_dash_on = parseFloat(value.substr(0,index));
@@ -392,27 +390,26 @@ RrdCmdLine.prototype = {
 	// DEF:<vname>=<rrdfile>:<ds-name>:<CF>[:step=<step>][:start=<time>][:end=<time>][:reduce=<CF>]
 	parse_def: function (line)
 	{
-		var args = line.split(/:/);
-		var n=1;
-		var vnames = args[n++].split('=');
-		var vname = vnames[0];
-		var rrdfile = vnames[1];
+		// Every character (except ':' and '\') are allowed within a value. The
+		// two exceptions must be escaped with a slash.
+		var args = line.match(/(\\.|[^:\\])+/g);
+		var n = 1;
+		var vnames = args[n++];
+		var vname = vnames.substr(0, vnames.indexOf("="));
+		var rrdfile = vnames.substr(vname.length + 1).replace(/\\(.)/g, "$1");
 		var name = args[n++];
 		var cf = args[n++];
-		var step = undefined;
-		var reduce = undefined;
-		var start = undefined;
-		var end = undefined;
+		var step, reduce, start, end;
 		if (args.length > n) {
 			for (var j = n, xlen = args.length ; j < xlen ; j++) {
 				var opts = args[j].split("=");
 				if (opts[0] === "step") step = opts[1];
-				if (opts[0] === "reduce") reduce = opts[1]
+				if (opts[0] === "reduce") reduce = opts[1];
 				if (opts[0] === "start") start = opts[1];
 				if (opts[0] === "end") end = opts[1];
 			}
 		}
-		this.graph.gdes_add_def(vname, rrdfile, name, cf, step, start, end, reduce)
+		this.graph.gdes_add_def(vname, rrdfile, name, cf, step, start, end, reduce);
 	},
 	// CDEF:vname=RPN expression
 	parse_cdef: function (line)
@@ -445,9 +442,9 @@ RrdCmdLine.prototype = {
 	parse_area: function (line)
 	{
 		var args = line.split(/#|:/);
-		var stack = args[3] === 'STACK' ? true : undefined;
+		var stack = args[4] === 'STACK' ? true : undefined;
 		var color = this.graph.parse_color(args[2]);
-		this.graph.gdes_add_area(args[1], this.graph.color2rgba(color), stack);
+		this.graph.gdes_add_area(args[1], this.graph.color2rgba(color), args[3], stack);
 	},
 	// TICK:vname#rrggbb[aa][:fraction[:legend]]
 	parse_tick: function (line)

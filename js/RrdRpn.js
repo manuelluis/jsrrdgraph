@@ -27,10 +27,10 @@
  */
 var RrdRpnError = function (message) 
 {
-    this.prototype = Error.prototype;
     this.name = "RrdRpnError";
     this.message = (message) ? message : "RPN stack underflow";
 };
+RrdRpnError.prototype = new Error();
 
 /**
  * RrdRpn
@@ -478,7 +478,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				break;
 			case RrdRpn.OP_ISINF:
 				if(stptr < 0) throw new RrdRpnError();
-				this.rpnstack[stptr] = isInfinite(this.rpnstack[stptr]) ? 1.0 : 0.0;
+				this.rpnstack[stptr] = !isFinite(this.rpnstack[stptr]) ? 1.0 : 0.0;
 				break;
 			case RrdRpn.OP_SQRT:
 				if(stptr < 0) throw new RrdRpnError();
@@ -603,7 +603,7 @@ RrdRpn.prototype.calc = function (data_idx, output, output_idx)
 				break;
 			case RrdRpn.OP_ABS:
 				if(stptr < 0) throw new RrdRpnError();
-				this.rpnstack[stptr] = fabs(this.rpnstack[stptr]);
+				this.rpnstack[stptr] = Math.abs(this.rpnstack[stptr]);
 				break;
 			case RrdRpn.OP_END:
 				break;
