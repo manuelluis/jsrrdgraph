@@ -27,8 +27,8 @@
  */
 var RrdGraphDescError = function (message)
 {
-    this.name = "RrdGraphDescError";
-    this.message = (message) ? message : "Error";
+	this.name = "RrdGraphDescError";
+	this.message = (message) ? message : "Error";
 };
 RrdGraphDescError.prototype = new Error();
 
@@ -325,6 +325,8 @@ RrdGraphDesc.prototype.tick = function (graph, vname, color, fraction, legend)
 	this.col = color;
 	if (fraction !== undefined)
 		this.yrule = fraction;
+	else
+		this.yrule = 0.1;
 	if (legend === undefined) this.legend = '';
 	else if (legend.length === 0) this.legend = '';
 	else this.legend = '  '+legend;
@@ -430,8 +432,8 @@ RrdGraphDesc.prototype.hrule = function (graph, value, color, legend, dashes, da
  */
 var RrdVdefError = function (message)
 {
-    this.name = "RrdVdefError";
-    this.message = (message) ? message : "Error";
+	this.name = "RrdVdefError";
+	this.message = (message) ? message : "Error";
 };
 RrdVdefError.prototype = new Error();
 
